@@ -7,6 +7,7 @@ import database
 from routers import projects as proj_router
 from routers import chapters as chap_router
 from routers import glossary as gloss_router
+from routers import translate as trans_router
 
 
 @pytest_asyncio.fixture
@@ -31,6 +32,7 @@ async def client(db):
     app.dependency_overrides[proj_router.get_db] = override_get_db
     app.dependency_overrides[chap_router.get_db] = override_get_db
     app.dependency_overrides[gloss_router.get_db] = override_get_db
+    app.dependency_overrides[trans_router.get_db] = override_get_db
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
