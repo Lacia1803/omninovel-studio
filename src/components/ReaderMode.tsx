@@ -1,44 +1,35 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  Play, Pause, ChevronLeft, ChevronRight, X,
-  Sun, Moon, Coffee, Leaf, Volume2, VolumeX, Minus, Plus, BookOpen
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Sun, Moon, Coffee, Leaf, Volume2, VolumeX, Minus, Plus, BookOpen } from 'lucide-react';
 import type { Chapter } from '../types/novel';
 
 interface ReaderModeProps {
-  chapters: Chapter[];
-  initialChapterId: string | null;
+  isOpen: boolean;
   onClose: () => void;
+  chapters: Chapter[];
+  currentChapterId: string;
+  onSelectChapter: (id: string) => void;
 }
 
 type ReaderTheme = 'dark' | 'light' | 'sepia' | 'forest';
 
 const THEMES: { value: ReaderTheme; label: string; icon: React.ReactNode; textColor: string }[] = [
   { value: 'dark',   label: 'Đêm',  icon: <Moon   size={13} />, textColor: '#e8ecf4' },
-  { value: 'light',  label: 'Sáng', icon: <Sun    size={13} />, textColor: '#1a1a2e' },
+  { value: 'light',  label: 'Sáng', icon: <Sun    size={13} />, textColor: '#2b1f15' },
   { value: 'sepia',  label: 'Sepia', icon: <Coffee size={13} />, textColor: '#3d2b1f' },
   { value: 'forest', label: 'Rừng', icon: <Leaf   size={13} />, textColor: '#d4edcc' },
 ];
 
 const THEME_BG: Record<ReaderTheme, string> = {
-  dark:   '#0f1117',
-  light:  '#fafafa',
+  dark:   '#1a1410',
+  light:  '#f5efe4',
   sepia:  '#f5ead2',
   forest: '#0d1f0d',
 };
 
-const FONTS = [
-  { value: 'var(--font-serif)', label: 'Serif (Merriweather)' },
-  { value: 'var(--font-ui)',    label: 'Sans-serif (Inter)' },
-  { value: 'var(--font-mono)', label: 'Monospace' },
-];
-
-export const ReaderMode: React.FC<ReaderModeProps> = ({ chapters, initialChapterId, onClose }) => {
-  const [chapterId, setChapterId] = useState(initialChapterId ?? chapters[0]?.id ?? '');
+export const ReaderMode: React.FC<ReaderModeProps> = ({ chapters, currentChapterId, onClose }) => {
+  const [chapterId, setChapterId] = useState(currentChapterId ?? chapters[0]?.id ?? '');
   const [theme, setTheme] = useState<ReaderTheme>('dark');
   const [fontSize, setFontSize] = useState(16);
-  const [fontFamily, setFontFamily] = useState(FONTS[0].value);
-  const [lineHeight, setLineHeight] = useState(1.9);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [showPanel, setShowPanel] = useState(true);
   const panelTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -55,7 +46,6 @@ export const ReaderMode: React.FC<ReaderModeProps> = ({ chapters, initialChapter
 
   const paragraphs = displayText.split(/\n+/).filter(p => p.trim());
 
-  // Auto-hide panel
   const showPanelTemporarily = () => {
     setShowPanel(true);
     if (panelTimeout.current) clearTimeout(panelTimeout.current);
@@ -105,7 +95,6 @@ export const ReaderMode: React.FC<ReaderModeProps> = ({ chapters, initialChapter
           pointerEvents: showPanel ? 'auto' : 'none',
         }}
       >
-        {/* Left: Close + Title */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
           <button
             onClick={onClose}
@@ -113,8 +102,8 @@ export const ReaderMode: React.FC<ReaderModeProps> = ({ chapters, initialChapter
               background: 'rgba(255,255,255,0.08)',
               border: '1px solid rgba(255,255,255,0.1)',
               color: themeInfo.textColor,
-              borderRadius: 8,
-              padding: '6px 8px',
+              borderRadius: 4,
+              padding: '6px 10px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -126,41 +115,38 @@ export const ReaderMode: React.FC<ReaderModeProps> = ({ chapters, initialChapter
             <X size={13} /> Đóng
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, opacity: 0.6 }}>
-            <BookOpen size={14} />
-            <span style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 280 }}>
+            <BookOpen size={14} strokeWidth={1.5} />
+            <span style={{ fontSize: 14, fontWeight: 600, fontFamily: 'var(--font-display)', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 280 }}>
               {chapter?.title}
             </span>
           </div>
         </div>
 
-        {/* Center: Chapter navigation */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button
             onClick={() => hasPrev && goChapter(chapters[chapterIdx - 1].id)}
             disabled={!hasPrev}
-            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: themeInfo.textColor, borderRadius: 7, padding: '5px 8px', cursor: 'pointer', opacity: hasPrev ? 1 : 0.3 }}
+            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: themeInfo.textColor, borderRadius: 4, padding: '5px 8px', cursor: 'pointer', opacity: hasPrev ? 1 : 0.3 }}
           >
             <ChevronLeft size={14} />
           </button>
           <select
             value={chapterId}
             onChange={e => goChapter(e.target.value)}
-            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: themeInfo.textColor, borderRadius: 7, padding: '5px 10px', fontSize: 12, fontFamily: 'var(--font-ui)', cursor: 'pointer', maxWidth: 200 }}
+            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: themeInfo.textColor, borderRadius: 4, padding: '5px 10px', fontSize: 12, fontFamily: 'var(--font-ui)', cursor: 'pointer', maxWidth: 200 }}
           >
             {chapters.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
           </select>
           <button
             onClick={() => hasNext && goChapter(chapters[chapterIdx + 1].id)}
             disabled={!hasNext}
-            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: themeInfo.textColor, borderRadius: 7, padding: '5px 8px', cursor: 'pointer', opacity: hasNext ? 1 : 0.3 }}
+            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: themeInfo.textColor, borderRadius: 4, padding: '5px 8px', cursor: 'pointer', opacity: hasNext ? 1 : 0.3 }}
           >
             <ChevronRight size={14} />
           </button>
         </div>
 
-        {/* Right: Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {/* Theme switcher */}
           <div style={{ display: 'flex', gap: 4 }}>
             {THEMES.map(t => (
               <button
@@ -181,8 +167,7 @@ export const ReaderMode: React.FC<ReaderModeProps> = ({ chapters, initialChapter
             ))}
           </div>
 
-          {/* Font size */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 7, padding: '3px 6px', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 4, padding: '3px 6px', border: '1px solid rgba(255,255,255,0.1)' }}>
             <button onClick={() => setFontSize(s => Math.max(12, s - 1))} style={{ background: 'none', border: 'none', color: themeInfo.textColor, cursor: 'pointer', padding: 2 }}>
               <Minus size={12} />
             </button>
@@ -192,14 +177,13 @@ export const ReaderMode: React.FC<ReaderModeProps> = ({ chapters, initialChapter
             </button>
           </div>
 
-          {/* TTS */}
           <button
             onClick={toggleSpeech}
             style={{
-              background: isSpeaking ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.07)',
-              border: `1px solid ${isSpeaking ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.1)'}`,
-              color: isSpeaking ? '#a78bfa' : themeInfo.textColor,
-              borderRadius: 7,
+              background: isSpeaking ? 'rgba(193,56,40,0.2)' : 'rgba(255,255,255,0.07)',
+              border: `1px solid ${isSpeaking ? 'rgba(193,56,40,0.4)' : 'rgba(255,255,255,0.1)'}`,
+              color: isSpeaking ? '#c13828' : themeInfo.textColor,
+              borderRadius: 4,
               padding: '5px 8px',
               cursor: 'pointer',
               display: 'flex',
@@ -216,10 +200,12 @@ export const ReaderMode: React.FC<ReaderModeProps> = ({ chapters, initialChapter
         <div className="reader-content-inner">
           <h2
             className="reader-chapter-heading"
-            style={{ fontSize: fontSize + 8, color: themeInfo.textColor, fontFamily }}
+            style={{ color: themeInfo.textColor }}
           >
             {chapter?.title}
           </h2>
+
+          <div style={{ width: 40, height: 1, background: 'currentColor', margin: '0 auto 40px', opacity: 0.2 }} />
 
           {paragraphs.map((para, idx) => (
             <p
@@ -227,8 +213,7 @@ export const ReaderMode: React.FC<ReaderModeProps> = ({ chapters, initialChapter
               className="reader-paragraph"
               style={{
                 fontSize,
-                fontFamily,
-                lineHeight,
+                lineHeight: 2,
                 color: themeInfo.textColor,
                 opacity: 0.88,
               }}
@@ -237,7 +222,6 @@ export const ReaderMode: React.FC<ReaderModeProps> = ({ chapters, initialChapter
             </p>
           ))}
 
-          {/* Bottom navigation */}
           <div className="reader-nav">
             <button
               onClick={() => hasPrev && goChapter(chapters[chapterIdx - 1].id)}
@@ -246,7 +230,7 @@ export const ReaderMode: React.FC<ReaderModeProps> = ({ chapters, initialChapter
                 background: 'rgba(255,255,255,0.06)',
                 border: '1px solid rgba(255,255,255,0.1)',
                 color: themeInfo.textColor,
-                borderRadius: 10,
+                borderRadius: 4,
                 padding: '10px 20px',
                 cursor: hasPrev ? 'pointer' : 'not-allowed',
                 opacity: hasPrev ? 1 : 0.3,
@@ -260,7 +244,7 @@ export const ReaderMode: React.FC<ReaderModeProps> = ({ chapters, initialChapter
               <ChevronLeft size={16} /> Chương trước
             </button>
 
-            <span style={{ fontSize: 12, color: themeInfo.textColor, opacity: 0.5 }}>
+            <span style={{ fontSize: 12, color: themeInfo.textColor, opacity: 0.5, fontFamily: 'var(--font-mono)' }}>
               {chapterIdx + 1} / {chapters.length}
             </span>
 
@@ -271,7 +255,7 @@ export const ReaderMode: React.FC<ReaderModeProps> = ({ chapters, initialChapter
                 background: 'rgba(255,255,255,0.06)',
                 border: '1px solid rgba(255,255,255,0.1)',
                 color: themeInfo.textColor,
-                borderRadius: 10,
+                borderRadius: 4,
                 padding: '10px 20px',
                 cursor: hasNext ? 'pointer' : 'not-allowed',
                 opacity: hasNext ? 1 : 0.3,

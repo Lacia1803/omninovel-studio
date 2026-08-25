@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Upload, Download, Settings, BookMarked, Languages, Play, Sparkles, Eye, Library, PenLine } from 'lucide-react';
+import { BookOpen, Upload, Download, Settings, BookMarked, Languages, Play, Sparkles, Eye, PenLine } from 'lucide-react';
 import type { NovelProject } from '../types/novel';
 
 interface NavbarProps {
@@ -26,10 +26,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header className="app-topbar">
       {/* Brand */}
       <div className="brand-area">
-        <div className="brand-icon">
-          <BookOpen size={16} color="#fff" strokeWidth={2.5} />
+        <div className="brand-mark">
+          <BookOpen size={14} color="#2b1f15" strokeWidth={2} />
         </div>
-        <div>
+        <div className="brand-text">
           <div className="brand-name">OmniNovel</div>
           <div className="brand-tag">Studio</div>
         </div>
@@ -37,37 +37,36 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Project info */}
       <div className="topbar-project-info">
-        <Library size={14} color="var(--text-muted)" />
+        <PenLine size={13} color="#8b7355" strokeWidth={1.5} />
         <input
           className="topbar-project-title"
           value={project.title}
           onChange={e => onUpdateProject({ ...project, title: e.target.value })}
-          placeholder="Tên truyện..."
+          placeholder="Untitled Manuscript"
         />
         <span className="topbar-divider" />
-        <PenLine size={12} color="var(--text-muted)" />
         <input
           className="topbar-project-author"
           value={project.author}
           onChange={e => onUpdateProject({ ...project, author: e.target.value })}
-          placeholder="Tác giả..."
+          placeholder="Anonymous"
         />
       </div>
 
       {/* Actions */}
       <div className="topbar-actions">
         <button onClick={onOpenImport} className="btn btn-subtle" title="Nhập file TXT, EPUB, PDF, DOCX">
-          <Upload size={14} />
-          <span>Nhập</span>
+          <Upload size={13} strokeWidth={2} />
+          <span>Import</span>
         </button>
 
         <button
           onClick={onConvertCurrentChapter}
           disabled={isProcessing || project.chapters.length === 0}
-          className="btn btn-cyan"
+          className="btn btn-indigo"
           title="Convert Vietphrase / Hán Việt"
         >
-          <Languages size={14} />
+          <Languages size={13} strokeWidth={2} />
           <span>Vietphrase</span>
         </button>
 
@@ -80,7 +79,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {isProcessing ? (
             <span className="spinner" />
           ) : (
-            <Sparkles size={14} />
+            <Sparkles size={13} strokeWidth={2} />
           )}
           <span>{isProcessing ? 'Đang dịch...' : 'Dịch AI'}</span>
         </button>
@@ -88,39 +87,39 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           onClick={onOpenBatchTranslate}
           disabled={project.chapters.length === 0}
-          className="btn btn-emerald"
+          className="btn btn-gold"
           title="Dịch hàng loạt"
         >
-          <Play size={14} />
-          <span>Hàng loạt</span>
+          <Play size={13} strokeWidth={2} />
+          <span>Batch</span>
         </button>
 
         <span className="topbar-divider" />
 
-        <button onClick={onOpenGlossary} className="btn btn-ghost btn-icon" title={`Từ điển (${project.glossary.filter(g => g.enabled).length})`}>
-          <BookMarked size={15} color="var(--accent-amber)" />
+        <button onClick={onOpenGlossary} className="btn btn-ghost btn-icon" title={`Glossary (${project.glossary.filter(g => g.enabled).length})`}>
+          <BookMarked size={14} color="#a8842c" strokeWidth={2} />
         </button>
 
         <button
           onClick={onToggleReaderMode}
           disabled={project.chapters.length === 0}
           className="btn btn-ghost btn-icon"
-          title="Chế độ đọc"
+          title="Reader Mode"
         >
-          <Eye size={15} color="var(--text-accent)" />
+          <Eye size={14} color="#2c4870" strokeWidth={2} />
         </button>
 
         <button
           onClick={onOpenExport}
           disabled={project.chapters.length === 0}
           className="btn btn-ghost btn-icon"
-          title="Xuất EPUB / PDF / DOCX / TXT"
+          title="Export"
         >
-          <Download size={15} color="var(--accent-cyan)" />
+          <Download size={14} color="#c13828" strokeWidth={2} />
         </button>
 
-        <button onClick={onOpenSettings} className="btn btn-ghost btn-icon" title="Cài đặt API">
-          <Settings size={15} />
+        <button onClick={onOpenSettings} className="btn btn-ghost btn-icon" title="Settings">
+          <Settings size={14} strokeWidth={2} />
         </button>
       </div>
     </header>

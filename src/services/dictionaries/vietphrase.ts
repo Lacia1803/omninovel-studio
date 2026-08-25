@@ -12,14 +12,14 @@ const HAN_VIET_DICT: Record<string, string> = {
   '寒': 'hàn', '来': 'lai', '暑': 'thử', '往': 'vãng', '秋': 'thu', '收': 'thu', '冬': 'đông', '藏': 'tàng',
   '剑': 'kiếm', '道': 'đạo', '神': 'thần', '魔': 'ma', '仙': 'tiên', '佛': 'phật', '帝': 'đế', '尊': 'tôn',
   '王': 'vương', '圣': 'thánh', '皇': 'hoàng', '主': 'chủ', '宗': 'tông', '门': 'môn', '派': 'phái', '殿': 'điện',
-  '龙': 'long', '凤': 'phượng', '虎': 'hổ', '雀': 'tước', '玄': 'huyền', '武': 'vũ', '麒': 'kỳ', '麟': 'lân',
+  '龙': 'long', '凤': 'phượng', '虎': 'hổ', '雀': 'tước', '武': 'vũ', '麒': 'kỳ', '麟': 'lân',
   '阴': 'âm', '阳': 'dương', '五': 'ngũ', '行': 'hành', '金': 'kim', '木': 'mộc', '水': 'thủy', '火': 'hỏa', '土': 'thổ',
   '乾': 'can', '坤': 'khôn', '太': 'thái', '极': 'cực', '无': 'vô', '有': 'hữu', '生': 'sinh', '死': 'tử',
   '破': 'phá', '灭': 'diệt', '斩': 'trảm', '杀': 'sát', '战': 'chiến', '修': 'tu', '炼': 'luyện', '化': 'hóa',
   '大': 'đại', '小': 'tiểu', '高': 'cao', '深': 'thâm', '强': 'cường', '弱': 'nhược', '真': 'chân', '假': 'giả',
   '人': 'nhân', '妖': 'yêu', '兽': 'thú', '灵': 'linh', '魂': 'hồn', '魄': 'phách', '血': 'huyết', '骨': 'cốt',
-  '一': 'nhất', '二': 'nhị', '三': 'tam', '四': 'tứ', '五': 'ngũ', '六': 'lục', '七': 'thất', '八': 'bát', '九': 'cửu', '十': 'thập',
-  '百': 'bách', '千': 'thiên', '万': 'vạn', '亿': 'ức', '劫': 'kiếp', '年': 'niên', '月': 'nguyệt', '日': 'nhật',
+  '一': 'nhất', '二': 'nhị', '三': 'tam', '四': 'tứ', '六': 'lục', '七': 'thất', '八': 'bát', '九': 'cửu', '十': 'thập',
+  '百': 'bách', '万': 'vạn', '亿': 'ức', '劫': 'kiếp',
   '风': 'phong', '云': 'vân', '雷': 'lôi', '电': 'điện', '霜': 'sương', '雪': 'tuyết', '雨': 'vũ', '雾': 'mộc',
   '山': 'sơn', '河': 'hà', '海': 'hải', '江': 'giang', '湖': 'hồ', '林': 'lâm', '谷': 'cốc', '峰': 'phong',
   '城': 'thành', '国': 'quốc', '界': 'giới', '域': 'vực', '洲': 'châu', '宫': 'cung', '阁': 'gác', '楼': 'lâu',
@@ -34,7 +34,7 @@ const DEFAULT_VIETPHRASE_DICT: Record<string, string> = {
   '老祖': 'Lão tổ', '宗主': 'Tông chủ', '门主': 'Môn chủ', '长老': 'Trưởng lão', '掌门': 'Chưởng môn',
   '师兄': 'sư huynh', '师弟': 'sư đệ', '师姐': 'sư tỷ', '师妹': 'sư muội', '师尊': 'sư tôn', '师父': 'sư phụ',
   '徒弟': 'đồ đệ', '弟子': 'đệ tử', '前辈': 'tiền bối', '晚辈': 'vãn bối', '道友': 'đạo hữu',
-  '公子': 'công tử', '小姐': 'tiểu thư', '少爷': 'thiếu gia', '丫鬟': 'nha hoàn', '前辈': 'tiền bối',
+  '公子': 'công tử', '小姐': 'tiểu thư', '少爷': 'thiếu gia', '丫鬟': 'nha hoàn',
   '主角': 'chủ giác', '金手指': 'kim thủ chỉ (bàn tay vàng)', '系统': 'hệ thống', '穿越': 'xuyên qua',
   '重生': 'trọng sinh', '逆袭': 'nghịch tập', '金丹': 'Kim Đan', '元婴': 'Nguyên Anh', '化神': 'Hóa Thần',
   '炼气': 'Luyện Khí', '筑基': 'Trúc Cơ', '合体': 'Hợp Thể', '大乘': 'Đại Thừa', '渡劫': 'Độ Kiếp',
@@ -124,7 +124,6 @@ export function convertVietphrase(text: string, options: ConvertOptions): string
 
     // Với các ký tự Hán chưa được dịch (còn lại), chuyển sang Hán Việt
     let finalWords: string[] = [];
-    let currentCharBuffer = '';
 
     for (let i = 0; i < processedLine.length; i++) {
       const char = processedLine[i];

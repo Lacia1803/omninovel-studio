@@ -245,7 +245,7 @@ export async function exportToDocx(project: NovelProject, contentType: 'translat
     }),
     new Paragraph({
       text: `Tác giả: ${project.author}`,
-      heading: HeadingLevel.SUBTITLE,
+      // heading: HeadingLevel.SUBTITLE,
     }),
   ];
 

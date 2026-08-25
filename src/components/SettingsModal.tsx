@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Settings, Key, Sparkles, X, ShieldCheck, ChevronRight } from 'lucide-react';
+import React from 'react';
+import { Settings, Key, Sparkles, X, ShieldCheck } from 'lucide-react';
 import type { TranslationProvider, TranslationSettings } from '../types/novel';
 
 interface SettingsModalProps {
@@ -49,38 +49,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-panel" style={{ maxWidth: 560 }}>
-        {/* Header */}
         <div className="modal-header">
           <div className="modal-title-group">
-            <div className="modal-icon" style={{ background: 'rgba(139,92,246,0.15)', color: 'var(--accent-1)' }}>
-              <Settings size={16} />
+            <div className="modal-icon">
+              <Settings size={16} strokeWidth={2} />
             </div>
             <div>
-              <div className="modal-title">Cài đặt Dịch thuật</div>
-              <div className="modal-subtitle">API Provider · Model · Văn phong</div>
+              <div className="modal-title">Translation Settings</div>
+              <div className="modal-subtitle">Provider · Model · Style — Cài đặt dịch thuật</div>
             </div>
           </div>
-          <button onClick={onClose} className="btn btn-ghost btn-icon"><X size={16} /></button>
+          <button onClick={onClose} className="btn btn-ghost btn-icon">
+            <X size={15} strokeWidth={2} />
+          </button>
         </div>
 
-        {/* Body */}
         <div className="modal-body">
-          {/* Free notice */}
           <div className="notice notice-success">
-            <ShieldCheck size={14} className="notice-icon" />
-            <span>Mặc định dùng <strong>Google Translate Free</strong> — không cần API key, dịch ngay lập tức. Thêm API key để dịch mượt mà hơn bằng AI.</span>
+            <ShieldCheck size={14} className="notice-icon" strokeWidth={2} />
+            <span>Mặc định dùng <strong>Google Translate Free</strong> — không cần API key, dịch ngay lập tức. Thêm API key để dịch mượt hơn bằng AI.</span>
           </div>
 
-          {/* Provider Selection */}
           <div className="settings-section">
             <div className="settings-section-header">
-              <Sparkles size={12} /> Trình dịch
+              <Sparkles size={11} strokeWidth={2.5} /> Translation Provider
             </div>
             {PROVIDERS.map(p => (
               <div
                 key={p.value}
                 className="settings-row"
-                style={{ cursor: 'pointer', background: settings.provider === p.value ? 'rgba(139,92,246,0.06)' : undefined }}
+                style={{ cursor: 'pointer', background: settings.provider === p.value ? 'var(--accent-vermilion-bg)' : undefined }}
                 onClick={() => {
                   const defaultModel = MODELS[p.value]?.[0]?.value || '';
                   onUpdateSettings({ ...settings, provider: p.value, model: defaultModel });
@@ -89,21 +87,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
                 <div className="settings-row-label">
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: p.color, flexShrink: 0 }} />
-                    <h5 style={{ fontSize: 13 }}>{p.label}</h5>
+                    <h5>{p.label}</h5>
                     {!p.needsKey && (
-                      <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 99, background: 'rgba(52,211,153,0.12)', color: 'var(--accent-emerald)', border: '1px solid rgba(52,211,153,0.2)', fontWeight: 600 }}>FREE</span>
+                      <span style={{ fontSize: 9, padding: '1px 6px', borderRadius: 2, background: 'var(--accent-jade-bg)', color: 'var(--accent-jade)', border: '1px solid var(--accent-jade)', fontWeight: 700, letterSpacing: '0.08em' }}>FREE</span>
                     )}
                   </div>
                   <p>{p.tag}</p>
                 </div>
-                <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${settings.provider === p.value ? 'var(--accent-1)' : 'var(--col-border-strong)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  {settings.provider === p.value && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-1)' }} />}
+                <div style={{ width: 18, height: 18, borderRadius: '50%', border: `1.5px solid ${settings.provider === p.value ? 'var(--accent-vermilion)' : 'var(--col-paper-edge)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {settings.provider === p.value && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-vermilion)' }} />}
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Model Selection */}
           {MODELS[settings.provider] && (
             <div className="field-group">
               <label className="field-label">Model AI</label>
@@ -115,13 +112,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
             </div>
           )}
 
-          {/* API Key */}
           {currentProvider?.needsKey && (
             <div className="field-group">
-              <label className="field-label"><Key size={12} /> API Key ({settings.provider})</label>
+              <label className="field-label"><Key size={11} strokeWidth={2} /> API Key ({settings.provider})</label>
               <input
                 type="password"
-                className="input input-mono"
+                className="input input-boxed input-mono"
                 value={settings.apiKey}
                 onChange={e => onUpdateSettings({ ...settings, apiKey: e.target.value })}
                 placeholder={`Nhập API Key của ${settings.provider}...`}
@@ -130,12 +126,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
             </div>
           )}
 
-          {/* Custom Endpoint */}
           {(settings.provider === 'ollama' || settings.provider === 'openai') && (
             <div className="field-group">
               <label className="field-label">Custom Endpoint</label>
               <input
-                className="input input-mono"
+                className="input input-boxed input-mono"
                 value={settings.customEndpoint || ''}
                 onChange={e => onUpdateSettings({ ...settings, customEndpoint: e.target.value })}
                 placeholder={settings.provider === 'ollama' ? 'http://localhost:11434/api/generate' : 'https://api.openai.com/v1/chat/completions'}
@@ -143,24 +138,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
             </div>
           )}
 
-          {/* Style */}
           <div className="settings-section">
             <div className="settings-section-header">
-              <Sparkles size={12} /> Văn phong dịch thuật
+              <Sparkles size={11} strokeWidth={2.5} /> Translation Style
             </div>
             {STYLES.map(s => (
               <div
                 key={s.value}
                 className="settings-row"
-                style={{ cursor: 'pointer', background: settings.stylePrompt === s.value ? 'rgba(139,92,246,0.06)' : undefined }}
+                style={{ cursor: 'pointer', background: settings.stylePrompt === s.value ? 'var(--accent-vermilion-bg)' : undefined }}
                 onClick={() => onUpdateSettings({ ...settings, stylePrompt: s.value as any })}
               >
                 <div className="settings-row-label">
                   <h5>{s.label}</h5>
                   <p>{s.desc}</p>
                 </div>
-                <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${settings.stylePrompt === s.value ? 'var(--accent-1)' : 'var(--col-border-strong)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  {settings.stylePrompt === s.value && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-1)' }} />}
+                <div style={{ width: 18, height: 18, borderRadius: '50%', border: `1.5px solid ${settings.stylePrompt === s.value ? 'var(--accent-vermilion)' : 'var(--col-paper-edge)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {settings.stylePrompt === s.value && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-vermilion)' }} />}
                 </div>
               </div>
             ))}
@@ -170,22 +164,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
             <div className="field-group">
               <label className="field-label">System Prompt tuỳ chỉnh</label>
               <textarea
-                className="input"
+                className="input input-boxed"
                 rows={4}
                 value={settings.customPrompt || ''}
                 onChange={e => onUpdateSettings({ ...settings, customPrompt: e.target.value })}
                 placeholder="Bạn là một dịch giả chuyên nghiệp..."
-                style={{ resize: 'vertical' }}
+                style={{ resize: 'vertical', lineHeight: 1.7 }}
               />
             </div>
           )}
 
-          {/* Glossary toggle */}
           <div className="settings-section">
             <div className="settings-section-header">Tuỳ chọn</div>
             <div className="settings-row">
               <div className="settings-row-label">
-                <h5>Áp dụng Từ điển (Glossary) khi dịch</h5>
+                <h5>Áp dụng Glossary khi dịch</h5>
                 <p>Tự động thay thế tên nhân vật và thuật ngữ trước khi gửi cho AI</p>
               </div>
               <label className="toggle-switch">
@@ -202,7 +195,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
 
         <div className="modal-footer">
           <button onClick={onClose} className="btn btn-primary">
-            Lưu & Đóng
+            Save & Close
           </button>
         </div>
       </div>

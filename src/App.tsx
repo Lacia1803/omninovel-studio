@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import type { Chapter, GlossaryItem, NovelProject, TranslationSettings, ViewMode } from './types/novel';
+import type { Chapter, NovelProject, TranslationSettings, ViewMode } from './types/novel';
 import { Navbar } from './components/Navbar';
 import { ChapterSidebar } from './components/ChapterSidebar';
 import { DualEditor } from './components/DualEditor';
@@ -211,22 +211,6 @@ export function App() {
   };
 
   // Inline Add to Glossary
-  const handleAddToGlossary = (sourceTerm: string) => {
-    const targetTerm = prompt(`Nhập từ dịch thay thế cho "${sourceTerm}":`);
-    if (!targetTerm || !targetTerm.trim()) return;
-
-    const newItem: GlossaryItem = {
-      id: `gloss_${Date.now()}`,
-      sourceTerm: sourceTerm.trim(),
-      targetTerm: targetTerm.trim(),
-      category: 'general',
-      enabled: true
-    };
-
-    setProject({ ...project, glossary: [newItem, ...project.glossary] });
-    alert(`Đã thêm "${sourceTerm}" -> "${targetTerm}" vào Từ điển!`);
-  };
-
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-slate-950 text-slate-100">
       {/* Header Bar */}
@@ -283,7 +267,6 @@ export function App() {
             });
           }}
           onTranslateParagraph={handleTranslateParagraph}
-          onAddToGlossary={handleAddToGlossary}
         />
       </div>
 
@@ -335,13 +318,15 @@ export function App() {
         project={project}
       />
 
-      <ReaderMode
-        isOpen={isReaderOpen}
-        onClose={() => setIsReaderOpen(false)}
-        chapters={project.chapters}
-        currentChapterId={activeChapterId || ''}
-        onSelectChapter={setActiveChapterId}
-      />
+      {isReaderOpen && (
+        <ReaderMode
+          isOpen={isReaderOpen}
+          onClose={() => setIsReaderOpen(false)}
+          chapters={project.chapters}
+          currentChapterId={activeChapterId || ''}
+          onSelectChapter={setActiveChapterId}
+        />
+      )}
     </div>
   );
 }

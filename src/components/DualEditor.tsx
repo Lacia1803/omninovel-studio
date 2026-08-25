@@ -11,12 +11,11 @@ interface DualEditorProps {
   onChangeViewMode: (mode: ViewMode) => void;
   onUpdateChapter: (updated: Chapter) => void;
   onTranslateParagraph: (text: string) => Promise<string>;
-  onAddToGlossary: (term: string) => void;
 }
 
 export const DualEditor: React.FC<DualEditorProps> = ({
   chapter, viewMode, onChangeViewMode, onUpdateChapter,
-  onTranslateParagraph, onAddToGlossary,
+  onTranslateParagraph,
 }) => {
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState('');
@@ -31,11 +30,11 @@ export const DualEditor: React.FC<DualEditorProps> = ({
       <main className="app-main">
         <div className="editor-empty-state">
           <div className="empty-icon-ring">
-            <FileText size={28} />
+            <FileText size={32} strokeWidth={1.5} />
           </div>
           <h3 className="empty-title">Chưa chọn chương</h3>
           <p className="empty-desc">
-            Chọn chương từ mục lục bên trái, hoặc nhấn <strong>Nhập</strong> để tải truyện lên.
+            Chọn một chương từ mục lục bên trái, hoặc nhấn <strong>Import</strong> ở thanh công cụ trên cùng để tải truyện lên.
           </p>
         </div>
       </main>
@@ -49,7 +48,7 @@ export const DualEditor: React.FC<DualEditorProps> = ({
   const handleCopy = () => {
     const text =
       viewMode === 'single_translated' ? chapter.translatedContent || chapter.originalContent :
-      viewMode === 'single_converted'  ? chapter.convertedContent  || chapter.originalContent :
+      viewMode === 'single_converted' ? chapter.convertedContent || chapter.originalContent :
       chapter.originalContent;
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -83,13 +82,12 @@ export const DualEditor: React.FC<DualEditorProps> = ({
     <main className="app-main">
       {/* Editor Toolbar */}
       <div className="editor-toolbar">
-        {/* Chapter title */}
         <div className="editor-chapter-title">
           {editingTitle ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <input
                 className="input"
-                style={{ fontSize: 14, fontWeight: 600, padding: '5px 10px' }}
+                style={{ fontSize: 22, fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 600, padding: '4px 0' }}
                 value={titleInput}
                 onChange={e => setTitleInput(e.target.value)}
                 autoFocus
@@ -103,7 +101,8 @@ export const DualEditor: React.FC<DualEditorProps> = ({
               />
               <button
                 onClick={() => { onUpdateChapter({ ...chapter, title: titleInput }); setEditingTitle(false); }}
-                className="btn btn-primary" style={{ padding: '5px 10px', fontSize: 12 }}
+                className="btn btn-primary"
+                style={{ padding: '6px 12px', fontSize: 12 }}
               >
                 <Save size={12} /> Lưu
               </button>
@@ -114,53 +113,52 @@ export const DualEditor: React.FC<DualEditorProps> = ({
               onClick={() => { setTitleInput(chapter.title); setEditingTitle(true); }}
               title="Click để đổi tên chương"
             >
-              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600, fontStyle: 'italic', color: 'var(--col-ink)' }}>
                 {chapter.title}
               </span>
-              <Edit3 size={12} color="var(--text-muted)" />
+              <Edit3 size={13} color="var(--col-ink-3)" strokeWidth={1.5} />
             </div>
           )}
         </div>
 
-        {/* View mode tabs */}
         <div className="view-mode-tabs">
           <button
             className={`view-tab ${viewMode === 'parallel_dual' ? 'active' : ''}`}
             onClick={() => onChangeViewMode('parallel_dual')}
           >
-            <Columns2 size={13} /> Song ngữ
+            <Columns2 size={12} strokeWidth={2} /> Song ngữ
           </button>
           <button
             className={`view-tab ${viewMode === 'single_translated' ? 'active' : ''}`}
             onClick={() => onChangeViewMode('single_translated')}
           >
-            <Sparkles size={13} /> Dịch AI
+            <Sparkles size={12} strokeWidth={2} /> Dịch AI
           </button>
           <button
             className={`view-tab ${viewMode === 'single_converted' ? 'active' : ''}`}
             onClick={() => onChangeViewMode('single_converted')}
           >
-            <Languages size={13} /> Vietphrase
+            <Languages size={12} strokeWidth={2} /> Vietphrase
           </button>
           <button
             className={`view-tab ${viewMode === 'single_original' ? 'active' : ''}`}
             onClick={() => onChangeViewMode('single_original')}
           >
-            <FileText size={13} /> Gốc
+            <FileText size={12} strokeWidth={2} /> Gốc
           </button>
         </div>
 
-        {/* Utility buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <button
             onClick={() => setShowFindReplace(v => !v)}
             className={`btn btn-ghost btn-icon ${showFindReplace ? 'active' : ''}`}
             title="Tìm & Thay thế"
+            style={showFindReplace ? { background: 'var(--col-paper-2)', color: 'var(--accent-vermilion)' } : {}}
           >
-            <Search size={14} />
+            <Search size={13} strokeWidth={2} />
           </button>
           <button onClick={handleCopy} className="btn btn-ghost btn-icon" title="Sao chép">
-            {copied ? <Check size={14} color="var(--accent-emerald)" /> : <Copy size={14} />}
+            {copied ? <Check size={13} color="var(--accent-jade)" strokeWidth={2.5} /> : <Copy size={13} strokeWidth={2} />}
           </button>
         </div>
       </div>
@@ -168,23 +166,23 @@ export const DualEditor: React.FC<DualEditorProps> = ({
       {/* Find & Replace */}
       {showFindReplace && (
         <div className="find-replace-bar">
-          <Search size={13} color="var(--text-muted)" />
+          <Search size={12} color="var(--col-ink-3)" strokeWidth={2} />
           <input
             className="input"
-            style={{ maxWidth: 200, padding: '5px 10px', fontSize: 12 }}
+            style={{ maxWidth: 200, padding: '5px 4px', fontSize: 12 }}
             placeholder="Tìm kiếm..."
             value={findQuery}
             onChange={e => setFindQuery(e.target.value)}
           />
           <input
             className="input"
-            style={{ maxWidth: 200, padding: '5px 10px', fontSize: 12 }}
+            style={{ maxWidth: 200, padding: '5px 4px', fontSize: 12 }}
             placeholder="Thay thế bằng..."
             value={replaceQuery}
             onChange={e => setReplaceQuery(e.target.value)}
           />
           <button onClick={handleFindReplace} className="btn btn-subtle" style={{ fontSize: 12, padding: '5px 12px' }}>
-            <RotateCcw size={12} /> Thay thế tất cả
+            <RotateCcw size={11} /> Thay thế tất cả
           </button>
         </div>
       )}
@@ -200,11 +198,10 @@ export const DualEditor: React.FC<DualEditorProps> = ({
 
               return (
                 <div key={idx} className="parallel-paragraph">
-                  {/* Left: Original + Converted */}
                   <div className="para-pane">
                     <div className="para-pane-header">
                       <span className="para-pane-label label-original">
-                        #{idx + 1} · Bản gốc
+                        ¶ {String(idx + 1).padStart(3, '0')} · Original
                       </span>
                     </div>
                     <p className="para-original-text">{origText}</p>
@@ -213,7 +210,6 @@ export const DualEditor: React.FC<DualEditorProps> = ({
                     )}
                   </div>
 
-                  {/* Right: AI Translated (editable) */}
                   <div className="para-pane">
                     <div className="para-pane-header">
                       <span className="para-pane-label label-translated">
@@ -226,14 +222,14 @@ export const DualEditor: React.FC<DualEditorProps> = ({
                       >
                         {translatingIdx === idx
                           ? <><span className="spinner" style={{ width: 10, height: 10 }} /> Đang dịch</>
-                          : <><RefreshCw size={10} /> Dịch lại</>
+                          : <><RefreshCw size={10} strokeWidth={2} /> Dịch lại</>
                         }
                       </button>
                     </div>
                     <textarea
                       className="para-translated-textarea"
                       value={transText}
-                      placeholder="Click 'Dịch lại' hoặc dịch cả chương từ toolbar..."
+                      placeholder="Nhấn 'Dịch lại' hoặc dịch cả chương từ thanh công cụ..."
                       onChange={e => {
                         const updated = [...transParagraphs];
                         updated[idx] = e.target.value;
@@ -251,10 +247,11 @@ export const DualEditor: React.FC<DualEditorProps> = ({
         {viewMode === 'single_translated' && (
           <div className="single-editor-wrap">
             <h2 className="single-editor-heading">{chapter.title}</h2>
+            <div className="single-editor-divider" />
             <textarea
               className="single-editor-textarea"
               value={chapter.translatedContent || ''}
-              placeholder="Chưa có bản dịch AI. Nhấn 'Dịch AI' ở thanh công cụ trên để bắt đầu…"
+              placeholder="Chưa có bản dịch AI. Nhấn 'Dịch AI' ở thanh công cụ trên để bắt đầu..."
               onChange={e => onUpdateChapter({ ...chapter, translatedContent: e.target.value })}
             />
           </div>
@@ -263,14 +260,15 @@ export const DualEditor: React.FC<DualEditorProps> = ({
         {/* SINGLE CONVERTED */}
         {viewMode === 'single_converted' && (
           <div className="single-editor-wrap">
-            <h2 className="single-editor-heading" style={{ color: 'var(--accent-cyan)' }}>
+            <h2 className="single-editor-heading" style={{ color: 'var(--accent-indigo)' }}>
               {chapter.title} — Vietphrase
             </h2>
+            <div className="single-editor-divider" />
             <textarea
               className="single-editor-textarea"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--accent-cyan)', opacity: 0.85 }}
+              style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--accent-indigo)', opacity: 0.9 }}
               value={chapter.convertedContent || ''}
-              placeholder="Chưa convert Vietphrase. Nhấn 'Vietphrase' ở thanh công cụ…"
+              placeholder="Chưa convert Vietphrase. Nhấn 'Vietphrase' ở thanh công cụ..."
               onChange={e => onUpdateChapter({ ...chapter, convertedContent: e.target.value })}
             />
           </div>
@@ -279,9 +277,10 @@ export const DualEditor: React.FC<DualEditorProps> = ({
         {/* SINGLE ORIGINAL */}
         {viewMode === 'single_original' && (
           <div className="single-editor-wrap">
-            <h2 className="single-editor-heading" style={{ color: 'var(--text-secondary)' }}>
-              {chapter.title} — Bản gốc
+            <h2 className="single-editor-heading" style={{ color: 'var(--col-ink-2)' }}>
+              {chapter.title} — Bản Gốc
             </h2>
+            <div className="single-editor-divider" />
             <textarea
               className="single-editor-textarea"
               value={chapter.originalContent}

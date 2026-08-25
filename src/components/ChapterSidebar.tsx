@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, Trash2, CheckSquare, Square, BookOpen, ChevronRight, LayoutList } from 'lucide-react';
+import { Search, Plus, Trash2, CheckSquare, Square, LayoutList } from 'lucide-react';
 import type { Chapter, ChapterStatus } from '../types/novel';
 
 interface ChapterSidebarProps {
@@ -12,13 +12,13 @@ interface ChapterSidebarProps {
   onTranslateSelected: (ids: string[]) => void;
 }
 
-const STATUS_BADGE: Record<ChapterStatus, JSX.Element> = {
-  raw:        <span className="badge badge-raw">Gốc</span>,
+const STATUS_BADGE: Record<ChapterStatus, React.ReactElement> = {
+  raw:        <span className="badge badge-raw">Raw</span>,
   converting: <span className="badge badge-converting">Converting…</span>,
   converted:  <span className="badge badge-converted">Vietphrase</span>,
-  translating:<span className="badge badge-translating">Dịch…</span>,
-  translated: <span className="badge badge-translated">✓ Dịch AI</span>,
-  error:      <span className="badge badge-error">Lỗi</span>,
+  translating:<span className="badge badge-translating">Translating…</span>,
+  translated: <span className="badge badge-translated">✓ Translated</span>,
+  error:      <span className="badge badge-error">Error</span>,
 };
 
 export const ChapterSidebar: React.FC<ChapterSidebarProps> = ({
@@ -49,21 +49,20 @@ export const ChapterSidebar: React.FC<ChapterSidebarProps> = ({
 
   return (
     <aside className="app-sidebar">
-      {/* Sidebar header */}
       <div className="sidebar-header">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>
-            <LayoutList size={13} />
-            Mục lục ({chapters.length})
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <LayoutList size={12} strokeWidth={2} />
+            <span>Table of Contents</span>
+            <span style={{ color: 'var(--accent-vermilion)', fontWeight: 700 }}>({chapters.length})</span>
           </div>
-          <button onClick={onAddChapter} className="btn btn-subtle" style={{ padding: '4px 8px', fontSize: 11 }}>
-            <Plus size={12} /> Thêm
+          <button onClick={onAddChapter} className="btn btn-subtle" style={{ padding: '4px 10px', fontSize: 11 }}>
+            <Plus size={11} strokeWidth={2.5} /> Thêm
           </button>
         </div>
 
-        {/* Search */}
         <div className="sidebar-search-wrap">
-          <Search size={13} className="sidebar-search-icon" />
+          <Search size={12} className="sidebar-search-icon" strokeWidth={2} />
           <input
             className="sidebar-search"
             value={search}
@@ -72,7 +71,6 @@ export const ChapterSidebar: React.FC<ChapterSidebarProps> = ({
           />
         </div>
 
-        {/* Filter row */}
         <div className="sidebar-filter-row">
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
             <option value="all">Tất cả</option>
@@ -80,21 +78,20 @@ export const ChapterSidebar: React.FC<ChapterSidebarProps> = ({
             <option value="converted">Vietphrase</option>
             <option value="translated">Đã dịch AI</option>
           </select>
-          <button onClick={toggleAll} className="btn btn-ghost btn-icon" style={{ padding: '5px', borderRadius: 6 }}>
+          <button onClick={toggleAll} className="btn btn-ghost btn-icon" style={{ padding: 5, borderRadius: 3 }} title="Toggle all">
             {selectedIds.length === filtered.length && filtered.length > 0
-              ? <CheckSquare size={13} color="var(--accent-1)" />
-              : <Square size={13} />
+              ? <CheckSquare size={12} color="var(--accent-vermilion)" strokeWidth={2} />
+              : <Square size={12} strokeWidth={2} />
             }
           </button>
         </div>
       </div>
 
-      {/* Chapter list */}
       <div className="sidebar-chapter-list">
         {filtered.length === 0 ? (
-          <div style={{ padding: '40px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>
+          <div style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--col-ink-3)', fontSize: 12, fontStyle: 'italic', fontFamily: 'var(--font-body)' }}>
             {chapters.length === 0
-              ? 'Chưa có chương nào. Nhập truyện để bắt đầu.'
+              ? 'Chưa có chương nào.\nNhấn Import để bắt đầu.'
               : 'Không tìm thấy kết quả.'}
           </div>
         ) : filtered.map(chap => {
@@ -119,17 +116,18 @@ export const ChapterSidebar: React.FC<ChapterSidebarProps> = ({
                 <div className="chapter-title">{chap.title}</div>
                 <div className="chapter-meta">
                   {STATUS_BADGE[chap.status]}
-                  <span className="chapter-wordcount">{chap.wordCount || chap.originalContent.length} kí tự</span>
+                  <span className="chapter-wordcount">{(chap.wordCount || chap.originalContent.length).toLocaleString()} chars</span>
                 </div>
               </div>
 
               <div className="chapter-actions">
                 <button
                   onClick={e => { e.stopPropagation(); onDeleteChapter(chap.id); }}
-                  className="btn btn-danger btn-icon"
-                  style={{ padding: 4 }}
+                  className="btn btn-ghost btn-icon"
+                  style={{ padding: 4, color: 'var(--accent-vermilion)' }}
+                  title="Xóa"
                 >
-                  <Trash2 size={11} />
+                  <Trash2 size={11} strokeWidth={2} />
                 </button>
               </div>
             </div>
@@ -137,11 +135,10 @@ export const ChapterSidebar: React.FC<ChapterSidebarProps> = ({
         })}
       </div>
 
-      {/* Footer stats */}
       <div className="sidebar-footer">
         <div className="sidebar-stat">
           <div className="sidebar-stat-dot dot-translated" />
-          <span>Dịch AI: {countTranslated}</span>
+          <span>AI: {countTranslated}</span>
         </div>
         <div className="sidebar-stat">
           <div className="sidebar-stat-dot dot-converted" />
@@ -149,7 +146,7 @@ export const ChapterSidebar: React.FC<ChapterSidebarProps> = ({
         </div>
         <div className="sidebar-stat">
           <div className="sidebar-stat-dot dot-raw" />
-          <span>Gốc: {chapters.length - countTranslated - countConverted}</span>
+          <span>Raw: {chapters.length - countTranslated - countConverted}</span>
         </div>
       </div>
     </aside>
