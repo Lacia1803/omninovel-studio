@@ -10,7 +10,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'cd backend && source venv/Scripts/activate && uvicorn main:app --port 8000',
+      command: 'cd backend && .\\venv\\Scripts\\python -m uvicorn main:app --port 8000',
       port: 8000,
       reuseExistingServer: true,
     },

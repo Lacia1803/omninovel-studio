@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import init_db
-from routers import projects, chapters, glossary, translate, parse, tts
+from routers import projects, chapters, glossary, translate, parse, tts, bilingual
 
 
 @asynccontextmanager
@@ -32,6 +32,7 @@ app.include_router(glossary.router, prefix="/api")
 app.include_router(translate.router, prefix="/api")
 app.include_router(parse.router, prefix="/api")
 app.include_router(tts.router, prefix="/api")
+app.include_router(bilingual.router, prefix="/api")
 
 
 @app.get("/api/health")

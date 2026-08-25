@@ -112,4 +112,11 @@ export const api = {
     return res.blob();
   },
   listVoices: () => request<{ id: string; name: string }[]>('/tts/voices'),
+
+  // Bilingual EPUB Export
+  exportBilingualEPUB: async (pid: string): Promise<Blob> => {
+    const res = await fetch(`${API_BASE}/projects/${pid}/export/bilingual-epub`);
+    if (!res.ok) throw new Error('EPUB export failed');
+    return res.blob();
+  },
 };
