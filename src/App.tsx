@@ -10,6 +10,7 @@ import { SettingsModal } from './components/SettingsModal';
 import { BatchTranslator } from './components/BatchTranslator';
 import { ExportModal } from './components/ExportModal';
 import { ReaderMode } from './components/ReaderMode';
+import { api } from './services/api';
 import { convertVietphrase } from './services/dictionaries/vietphrase';
 import { translateText } from './services/translators';
 
@@ -45,13 +46,35 @@ const INITIAL_PROJECT: NovelProject = {
 
 export function App() {
   // Persistence
-  const [project, setProject] = useState<NovelProject>(() => {
-    const saved = localStorage.getItem('omni_novel_project');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
-    }
-    return INITIAL_PROJECT;
-  });
+  const [project, setProject] = useState<NovelProject>(INITIAL_PROJECT);
+
+  // Load from API on mount, fallback to localStorage
+  useEffect(() => {
+    api.listProjects().then(async (projects) => {
+      if (projects.length > 0) {
+        const full = await api.getProject(projects[0].id);
+        setProject({
+          ...INITIAL_PROJECT,
+          ...full,
+          id: full.id,
+          title: full.title,
+          author: full.author,
+          sourceLanguage: full.source_language as any,
+          targetLanguage: full.target_language as any,
+          chapters: (full.chapters || []) as any,
+          glossary: (full.glossary || []) as any,
+          settings: JSON.parse(full.settings_json || '{}'),
+          createdAt: full.created_at,
+          updatedAt: full.updated_at,
+        });
+      }
+    }).catch(() => {
+      const saved = localStorage.getItem('omni_novel_project');
+      if (saved) {
+        try { setProject(JSON.parse(saved)); } catch { /* ignore */ }
+      }
+    });
+  }, []);
 
   const [activeChapterId, setActiveChapterId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('parallel_dual');

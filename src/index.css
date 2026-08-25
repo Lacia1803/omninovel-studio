@@ -1056,7 +1056,7 @@ select.input {
   left: -8px;
 }
 .single-editor-divider::after {
-  left: calc100% + 8px);
+  left: calc(100% + 8px);
 }
 
 .single-editor-textarea {
