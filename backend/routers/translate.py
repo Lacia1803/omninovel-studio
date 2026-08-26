@@ -1,3 +1,4 @@
+"""Translation endpoints with rate limiting and auth."""
 import json
 from fastapi import APIRouter, Depends, HTTPException
 import aiosqlite
@@ -5,11 +6,12 @@ import aiosqlite
 from database import get_db
 from models import TranslateRequest, TranslateResponse, BatchTranslateRequest, ChapterResponse
 from services.translator import translate_text
+from security import get_current_user
 
 router = APIRouter(tags=["translate"])
 
 
-@router.post("/translate", response_model=TranslateResponse)
+@router.post("/translate", response_model=TranslateResponse, dependencies=[Depends(get_current_user)])
 async def translate(body: TranslateRequest):
     result = await translate_text(
         text=body.text,
@@ -30,7 +32,7 @@ async def translate(body: TranslateRequest):
     return result
 
 
-@router.post("/projects/{project_id}/translate-batch", response_model=list[ChapterResponse])
+@router.post("/projects/{project_id}/translate-batch", response_model=list[ChapterResponse], dependencies=[Depends(get_current_user)])
 async def translate_batch(
     project_id: str,
     body: BatchTranslateRequest,

@@ -1,9 +1,36 @@
 const API_BASE = '/api';
 
+// --- Auth token management ---
+const STORAGE_KEY = 'omninovel_token';
+function getToken(): string | null {
+  try { return localStorage.getItem(STORAGE_KEY); } catch { return null; }
+}
+export function setToken(token: string) {
+  try { localStorage.setItem(STORAGE_KEY, token); } catch { /* noop */ }
+}
+export function clearToken() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch { /* noop */ }
+}
+export function isLoggedIn(): boolean {
+  return !!getToken();
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const token = getToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options?.headers as Record<string, string> || {}),
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  // Don't set Content-Type for FormData
+  if (options?.body instanceof FormData) {
+    delete headers['Content-Type'];
+  }
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
     ...options,
+    headers,
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
@@ -12,6 +39,28 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
+// --- Auth API ---
+export interface UserPublic {
+  id: string;
+  email: string;
+  username: string;
+}
+
+export interface TokenResponse {
+  access_token: string;
+  token_type: string;
+  user: UserPublic;
+}
+
+export const authApi = {
+  register: (data: { email: string; username: string; password: string }) =>
+    request<TokenResponse>('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+  login: (data: { email: string; password: string }) =>
+    request<TokenResponse>('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+  me: () => request<UserPublic>('/auth/me'),
+};
+
+// --- Existing API ---
 export interface ProjectSummary {
   id: string;
   title: string;
@@ -103,9 +152,12 @@ export const api = {
 
   // TTS
   generateTTS: async (text: string, voice?: string, rate?: string): Promise<Blob> => {
+    const token = getToken();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
     const res = await fetch(`${API_BASE}/tts`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ text, voice: voice || 'vi-VN-HoaiMyNeural', rate: rate || '+0%' }),
     });
     if (!res.ok) {
@@ -118,7 +170,10 @@ export const api = {
 
   // Bilingual EPUB Export
   exportBilingualEPUB: async (pid: string): Promise<Blob> => {
-    const res = await fetch(`${API_BASE}/projects/${pid}/export/bilingual-epub`);
+    const token = getToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${API_BASE}/projects/${pid}/export/bilingual-epub`, { headers });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: res.statusText }));
       throw new Error(err.detail || 'EPUB export failed');

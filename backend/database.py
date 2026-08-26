@@ -50,6 +50,16 @@ CREATE TABLE IF NOT EXISTS chapter_notes (
 );
 
 CREATE INDEX IF NOT EXISTS idx_notes_chapter ON chapter_notes(chapter_id);
+
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE,
+    username TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 """
 
 

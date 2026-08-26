@@ -1,6 +1,7 @@
 import React from 'react';
-import { BookOpen, Upload, Download, Settings, BookMarked, Languages, Play, Sparkles, Eye, PenLine, Sun, Moon } from 'lucide-react';
+import { BookOpen, Upload, Download, Settings, BookMarked, Languages, Play, Sparkles, Eye, PenLine, Sun, Moon, LogOut } from 'lucide-react';
 import type { NovelProject } from '../types/novel';
+import type { UserPublic } from '../services/api';
 
 interface NavbarProps {
   project: NovelProject;
@@ -16,13 +17,15 @@ interface NavbarProps {
   isProcessing: boolean;
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
+  user?: UserPublic | null;
+  onLogout?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   project, onUpdateProject, onOpenImport, onOpenExport,
   onOpenSettings, onOpenGlossary, onOpenBatchTranslate,
   onToggleReaderMode, onConvertCurrentChapter, onTranslateCurrentChapter,
-  isProcessing, theme, onToggleTheme,
+  isProcessing, theme, onToggleTheme, user, onLogout,
 }) => {
   return (
     <header className="app-topbar">
@@ -127,6 +130,16 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button onClick={onOpenSettings} className="btn btn-ghost btn-icon" title="Settings">
           <Settings size={14} strokeWidth={2} />
         </button>
+
+        {user && (
+          <>
+            <span className="topbar-divider" />
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{user.username}</span>
+            <button onClick={onLogout} className="btn btn-ghost btn-icon" title="Đăng xuất">
+              <LogOut size={14} strokeWidth={2} />
+            </button>
+          </>
+        )}
       </div>
     </header>
   );

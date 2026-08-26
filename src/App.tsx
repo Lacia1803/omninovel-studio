@@ -7,6 +7,7 @@ import { DualEditor } from "./components/DualEditor";
 import { ImportModal } from "./components/ImportModal";
 import { GlossaryManager } from "./components/GlossaryManager";
 import { SettingsModal } from "./components/SettingsModal";
+import { AuthModal } from "./components/AuthModal";
 const BatchTranslator = React.lazy(() => import("./components/BatchTranslator").then(m => ({ default: m.BatchTranslator })));
 const ExportModal = React.lazy(() => import("./components/ExportModal").then(m => ({ default: m.ExportModal })));
 const ReaderMode = React.lazy(() => import("./components/ReaderMode").then(m => ({ default: m.ReaderMode })));
@@ -15,10 +16,26 @@ import { translateText } from "./services/translators";
 import { useProject } from "./hooks/useProject";
 import { useTheme } from "./hooks/useTheme";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+import { isLoggedIn, type UserPublic, clearToken } from "./services/api";
 
 export function App() {
   const { project, setProject, patchProject } = useProject();
   const { theme, toggleTheme } = useTheme();
+
+  // Auth state
+  const [user, setUser] = useState<UserPublic | null>(null);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  useEffect(() => {
+    if (isLoggedIn()) {
+      // Token exists — try to load user info; if expired, show auth
+      import("./services/api").then(({ authApi }) =>
+        authApi.me().then(setUser).catch(() => { clearToken(); setIsAuthOpen(true); })
+      );
+    } else {
+      setIsAuthOpen(true);
+    }
+  }, []);
 
   const [activeChapterId, setActiveChapterId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("parallel_dual");
@@ -181,6 +198,15 @@ export function App() {
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
   };
 
+  // Show auth modal if not logged in
+  if (!user && isAuthOpen) {
+    return (
+      <div className="app-shell">
+        <AuthModal isOpen={isAuthOpen} onClose={() => {}} onAuth={setUser} />
+      </div>
+    );
+  }
+
   return (
     <div className="app-shell">
       {/* Header Bar */}
@@ -198,6 +224,8 @@ export function App() {
         isProcessing={isProcessing}
         theme={theme}
         onToggleTheme={toggleTheme}
+        user={user}
+        onLogout={() => { clearToken(); setUser(null); setIsAuthOpen(true); }}
       />
 
       {/* Main Studio Body */}

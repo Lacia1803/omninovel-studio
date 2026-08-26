@@ -5,8 +5,6 @@ import pytest
 from fastapi.testclient import TestClient
 from main import app
 
-client = TestClient(app)
-
 
 @pytest.fixture
 def client():
@@ -51,11 +49,11 @@ def _create_test_project_and_chapter(client):
     return project_id, chapter_id
 
 
-def test_create_note(client):
+def test_create_note(auth_client: TestClient):
     """Test creating a chapter note."""
-    client_id, chapter_id = _create_test_project_and_chapter(client)
+    client_id, chapter_id = _create_test_project_and_chapter(auth_client)
 
-    response = client.post(
+    response = auth_client.post(
         f"/api/projects/{client_id}/chapters/{chapter_id}/notes",
         json={
             "note": "This is a test note for chapter 1",
@@ -67,11 +65,11 @@ def test_create_note(client):
     assert data["chapter_id"] == chapter_id
 
 
-def test_export_bilingual_epub(client):
+def test_export_bilingual_epub(auth_client: TestClient):
     """Test exporting bilingual EPUB."""
-    client_id, chapter_id = _create_test_project_and_chapter(client)
+    client_id, chapter_id = _create_test_project_and_chapter(auth_client)
 
-    response = client.get(
+    response = auth_client.get(
         f"/api/projects/{client_id}/export/bilingual-epub"
     )
     assert response.status_code == 200
@@ -95,9 +93,9 @@ class _AsyncStream:
         raise StopAsyncIteration
 
 
-def test_tts_generate(client):
+def test_tts_generate(auth_client: TestClient):
     """Test TTS generation endpoint."""
-    client_id, chapter_id = _create_test_project_and_chapter(client)
+    client_id, chapter_id = _create_test_project_and_chapter(auth_client)
 
     # Mock Edge TTS to avoid real network calls
     with patch('edge_tts.Communicate') as mock_communicate:
@@ -108,7 +106,7 @@ def test_tts_generate(client):
             ])
         )
 
-        response = client.post(
+        response = auth_client.post(
             "/api/tts",
             json={
                 "text": "Hello world",
@@ -122,11 +120,11 @@ def test_tts_generate(client):
         assert len(response.content) > 0
 
 
-def test_export_markdown(client):
+def test_export_markdown(auth_client: TestClient):
     """Test exporting chapter content as Markdown."""
-    client_id, chapter_id = _create_test_project_and_chapter(client)
+    client_id, chapter_id = _create_test_project_and_chapter(auth_client)
 
-    response = client.get(
+    response = auth_client.get(
         f"/api/projects/{client_id}/export/markdown",
         params={"content_type": "translated"},
     )
@@ -137,3 +135,64 @@ def test_export_markdown(client):
     assert "# Test Chapter" in content
     assert "Nội dung bản dịch 1" in content
     assert "Nội dung bản dịch 2" in content
+
+
+# --- Auth endpoint tests ---
+def test_register_and_login(client: TestClient):
+    """Test user registration and login."""
+    # Register
+    resp = client.post("/api/auth/register", json={
+        "email": "new@example.com",
+        "username": "newuser",
+        "password": "password123",
+    })
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "access_token" in data
+    assert data["user"]["email"] == "new@example.com"
+
+    # Login
+    resp2 = client.post("/api/auth/login", json={
+        "email": "new@example.com",
+        "password": "password123",
+    })
+    assert resp2.status_code == 200
+    assert "access_token" in resp2.json()
+
+
+def test_register_duplicate_email(client: TestClient):
+    """Test registration with duplicate email returns 409."""
+    client.post("/api/auth/register", json={
+        "email": "dup@example.com",
+        "username": "user1",
+        "password": "password123",
+    })
+    resp = client.post("/api/auth/register", json={
+        "email": "dup@example.com",
+        "username": "user2",
+        "password": "password123",
+    })
+    assert resp.status_code == 409
+
+
+def test_login_wrong_password(client: TestClient):
+    """Test login with wrong password returns 401."""
+    client.post("/api/auth/register", json={
+        "email": "wrong@example.com",
+        "username": "user",
+        "password": "password123",
+    })
+    resp = client.post("/api/auth/login", json={
+        "email": "wrong@example.com",
+        "password": "wrongpassword",
+    })
+    assert resp.status_code == 401
+
+
+def test_protected_endpoint_no_token(client: TestClient):
+    """Test that protected endpoints return 401 without token."""
+    resp = client.post("/api/tts", json={
+        "text": "Hello",
+        "voice": "vi-VN-HoaiMyNeural",
+    })
+    assert resp.status_code == 401

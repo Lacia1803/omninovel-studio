@@ -1,9 +1,10 @@
-"""TTS Router — text-to-speech endpoints."""
-from fastapi import APIRouter
+"""TTS Router — text-to-speech endpoints with auth."""
+from fastapi import APIRouter, Depends
 from fastapi.responses import Response
 from pydantic import BaseModel
 
 from services.tts import generate_tts, list_voices
+from security import get_current_user
 
 router = APIRouter(tags=["tts"])
 
@@ -20,7 +21,7 @@ class VoiceInfo(BaseModel):
     name: str
 
 
-@router.post("/tts", response_class=Response)
+@router.post("/tts", response_class=Response, dependencies=[Depends(get_current_user)])
 async def tts_generate(body: TTSRequest):
     """Generate TTS audio from text. Returns audio/mpeg bytes."""
     result = await generate_tts(
