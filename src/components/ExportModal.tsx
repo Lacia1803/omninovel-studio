@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Download, X, FileText, FileType, File, BookOpen, Database, Sparkles } from 'lucide-react';
+import { Download, X, FileText, FileType, File, BookOpen, Database, Sparkles, Languages } from 'lucide-react';
 import type { NovelProject } from '../types/novel';
 import { exportToTxt, exportToEpub, exportToPdf, exportToDocx, exportProjectFile } from '../services/exporters';
+import { api } from '../services/api';
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -9,7 +10,7 @@ interface ExportModalProps {
   project: NovelProject;
 }
 
-type ExportFormat = 'txt' | 'epub' | 'pdf' | 'docx' | 'json';
+type ExportFormat = 'txt' | 'epub' | 'pdf' | 'docx' | 'json' | 'bilingual-epub';
 
 const FORMATS: { id: ExportFormat; label: string; icon: React.ReactNode; color: string; desc: string }[] = [
   { id: 'txt',  label: 'TXT',  icon: <FileText size={18} strokeWidth={1.5} />,   color: 'var(--col-ink-3)',  desc: 'Văn bản thuần, đọc mọi nơi' },
@@ -17,6 +18,7 @@ const FORMATS: { id: ExportFormat; label: string; icon: React.ReactNode; color: 
   { id: 'pdf',  label: 'PDF',  icon: <FileType size={18} strokeWidth={1.5} />,  color: 'var(--accent-vermilion)', desc: 'Định dạng chuẩn, in ấn' },
   { id: 'docx', label: 'DOCX', icon: <File size={18} strokeWidth={1.5} />,     color: 'var(--accent-indigo)', desc: 'Microsoft Word' },
   { id: 'json', label: 'JSON', icon: <Database size={18} strokeWidth={1.5} />, color: 'var(--accent-gold)', desc: 'Backup project, import lại sau' },
+  { id: 'bilingual-epub', label: 'Song Ngữ', icon: <Languages size={18} strokeWidth={1.5} />, color: '#9333ea', desc: 'EPUB song ngữ, bản gốc + bản dịch' },
 ];
 
 export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, project }) => {
@@ -35,6 +37,19 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, proje
         case 'pdf':  await exportToPdf(project, contentType); break;
         case 'docx': await exportToDocx(project, contentType); break;
         case 'json': exportProjectFile(project); break;
+        case 'bilingual-epub': {
+          if (!project.id) throw new Error('Project must be saved before exporting');
+          const blob = await api.exportBilingualEPUB(project.id);
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${project.title}_bilingual.epub`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          break;
+        }
       }
     } catch (err: any) {
       alert(`Export failed: ${err.message}`);
@@ -94,7 +109,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, proje
           </div>
 
           <div className="notice notice-info">
-            <span style={{ fontSize: 12 }}>File sẽ được tải về máy của bạn. EPUB hỗ trợ đọc trên mọi thiết bị đọc sách.</span>
+            <span style={{ fontSize: 12 }}>
+              {selectedFormat === 'bilingual-epub'
+                ? 'EPUB song ngữ sẽ xen kẽ từng đoạn bản gốc và bản dịch. Yêu cầu đã có bản dịch.'
+                : 'File sẽ được tải về máy của bạn. EPUB hỗ trợ đọc trên mọi thiết bị đọc sách.'}
+            </span>
           </div>
         </div>
 

@@ -1,0 +1,16 @@
+node_modules
+dist
+.git
+.github
+*.log
+.DS_Store
+__pycache__
+backend/venv
+backend/__pycache__
+backend/omninovel.db
+tests
+playwright.config.ts
+*.test.ts
+*.spec.ts
+.vscode
+.idea

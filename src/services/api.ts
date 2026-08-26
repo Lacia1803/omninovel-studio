@@ -100,4 +100,29 @@ export const api = {
   }) => request<TranslateResult>('/translate', { method: 'POST', body: JSON.stringify(data) }),
   batchTranslate: (pid: string, chapterIds: string[], mode: 'ai' | 'vietphrase') =>
     request<ChapterData[]>(`/projects/${pid}/translate-batch`, { method: 'POST', body: JSON.stringify({ chapter_ids: chapterIds, mode }) }),
+
+  // TTS
+  generateTTS: async (text: string, voice?: string, rate?: string): Promise<Blob> => {
+    const res = await fetch(`${API_BASE}/tts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voice: voice || 'vi-VN-HoaiMyNeural', rate: rate || '+0%' }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(err.detail || 'TTS generation failed');
+    }
+    return res.blob();
+  },
+  listVoices: () => request<{ id: string; name: string }[]>('/tts/voices'),
+
+  // Bilingual EPUB Export
+  exportBilingualEPUB: async (pid: string): Promise<Blob> => {
+    const res = await fetch(`${API_BASE}/projects/${pid}/export/bilingual-epub`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(err.detail || 'EPUB export failed');
+    }
+    return res.blob();
+  },
 };
