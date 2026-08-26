@@ -1,235 +1,161 @@
-# OmniNovel Studio
+# OmniNovel Studio 📖
+[![License](https://img.shields.io/github/license/Lacia1803/omninovel-studio)](LICENSE)
+[![Version](https://img.shields.io/github/v/release/Lacia1803/omninovel-studio)](https://github.com/Lacia1803/omninovel-studio/releases)
+[![Build Status](https://github.com/Lacia1803/omninovel-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/Lacia1803/omninovel-studio/actions)
 
-> Một ứng dụng duy nhất để dịch, chuyển đổi và xuất bản tiểu thuyết — với glossary nhất quán và mười nguồn AI để lựa chọn.
+**Một ứng dụng toàn diện giúp **dịch, chuyển đổi và xuất bản** tiểu thuyết song ngữ với hệ thống Glossary nhất quán và tích hợp 10 nhà cung cấp AI.**
 
-![React 19](https://img.shields.io/badge/React-19-61dafb?logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi)
-![Python 3.11](https://img.shields.io/badge/Python-3.11-3776ab?logo=python)
-![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?logo=tauri)
-![Docker](https://img.shields.io/badge/Docker-Compose-2496ed?logo=docker)
+## 📖 Tổng quan
+OmniNovel Studio là giải pháp phần mềm **độc lập** (All‑in‑one Studio) giải quyết triệt để các hạn chế của việc đọc và dịch thuật tiểu thuyết web/ebook (Trung, Nhật, Hàn, Anh):
 
----
+- **Multi‑source translation**: Chuyển đổi hoặc fallback tự động giữa 10 nguồn dịch khác nhau.  
+- **Glossary smart‑prepend**: Đồng bộ tên nhân vật, địa danh, thuật ngữ tu tiên trước khi gửi tới AI, tránh bất nhất từ ngữ.  
+- **Client‑side Vietphrase engine**: Chạy hoàn toàn trong trình duyệt, không tốn token, không cần mạng.  
+- **EPUB song ngữ chất lượng cao**: Xuất bản định dạng EPUB với bản gốc và bản dịch xen kẽ.
 
-## Vì sao OmniNovel Studio tồn tại
+## ✨ Tính năng nổi bật
+- **10 nguồn dịch linh hoạt**: Gemini, OpenAI, Claude, DeepSeek, Mistral, Cohere, Groq, Ollama (Local LLM), Google Translate, MyMemory (miễn phí).  
+- **Auto‑fallback**: Tự động chuyển sang nhà cung cấp dự phòng khi gặp rate‑limit hoặc ngắt kết nối mà không mất tiến trình.  
+- **4 phong cách dịch**: Văn học, Tiên hiệp, Sát nghĩa, Tùy chỉnh.  
+- **Pipeline 3 cột**: So sánh bản gốc, Vietphrase, và bản dịch AI; biện tập, chỉnh sửa ngay lập tức.  
+- **Edge TTS miễn phí**: 8 giọng đọc Neural từ Microsoft Edge (Việt Nam, Anh, Nhật, Hàn, Trung) với tùy chỉnh tốc độ và stream audio.  
+- **Định dạng & xuất bản**: Hỗ trợ TXT, EPUB, PDF, DOCX; xuất EPUB song ngữ, Markdown, JSON.
 
-Bạn mở một cuốn tiểu thuyết Trung, Nhật, Hàn — hay gốc tiếng Anh — và bạn muốn dịch nó để đọc. Bạn không muốn mất tiếng qua Google Translate, không muốn trả tiền cho mỗi chương, và bạn không muốn đánh lại glossary ba lần vì ba dịch vụ khác nhau gọi nhân vật chính bằng ba cái tên.
+## 🛠️ Tech Stack
+| Tầng | Công nghệ / Thư viện |
+|------|----------------------|
+| **Frontend** | React 19, Vite, TypeScript (strict), custom CSS |
+| **Backend** | Python 3.11, FastAPI, `aiosqlite` |
+| **Database** | SQLite (async) |
+| **Parsers** | `chardet`, `PyMuPDF`, `python-docx`, `ebooklib` |
+| **Audio & TTS** | Edge TTS client integration |
+| **Security & Ops** | JWT auth, `bcrypt`, `slowapi` (rate limit), `loguru` (structured logging) |
+| **Desktop / Container** | Tauri v2, Docker Compose (Nginx + FastAPI) |
+| **Testing** | Vitest (frontend), Pytest (backend) |
 
-OmniNovel Studio ra đời để giải quyết đúng cái đó. Một ứng dụng duy nhất, đủ sức nâng một cuốn bản thảo từ file EPUB nguồn, qua chuyển đổi Hán Việt hoặc dịch thuật AI, đến xuất bản EPUB song ngữ — mà không bao giờ mất kiểm soát thuật ngữ giữa đường.
-
-## Cảm hứng thiết kế
-
-Phần lớn phần mềm dịch thuật trông như bảng tính. OmniNovel Studio trông như một phòng đọc sách.
-
-Chúng tôi gọi hệ thống thiết kế này là **Editorial Ink**: giấy ivory ấm áp, typography serif từ Playfair Display và Lora, điểm nhấn vermilion như con dấu son truyền thống Á Đông. Khi bạn bật chế độ tối, mọi thứ chuyển sang tông mực sepia ấm — không phải nền đen lạnh. Bạn đang dịch sách, không phải code bash script.
-
-Toàn bộ giao diện được viết tay bằng hơn 2.100 dòng CSS. Không framework utility, không Tailwind. Mỗi khoảng cách, mỗi độ bóng đều có chủ đích.
-
-## Tính năng
-
-### Engine dịch thuật — mười nguồn, một giao diện
-
-Bạn có thể chọn trong số mười nhà cung cấp — từ Gemini, OpenAI, Claude, DeepSeek, đến hai dịch vụ miễn phí không cần API key (Google Translate, MyMemory) và Ollama chạy hoàn toàn trên máy của bạn.
-
-Khi một nguồn lỗi, OmniNovel Studio tự chuyển sang nguồn dự phòng mà không làm bạn mất chương đang dịch dở. Glossary của bạn — danh sách tên nhân vật, địa danh, thuật ngữ tu tiên — được áp dụng **trước** khi gửi cho AI, đảm bảo chương 1 và chương 999 dịch cùng một tên cho "Lão Tổ".
-
-Bốn phong cách dịch cài sẵn: Văn học, Tiên hiệp, Sát nghĩa, Tuỳ chỉnh. Bạn muốn dịch kiểu web novel hay kiểu sách in — bạn quyết.
-
-### Vietphrase client-side — không phụ thuộc server
-
-Bạn muốn chuyển Hán Việt truyện kiếm hiệp? Bạn có thể làm ngay trong trình duyệt mà không cần gọi API, không tốn token, không chờ mạng. Từ điển nằm gọn trong client, glossary bạn thêm được nạp vào ngay.
-
-Giao diện **ba cột Pipeline** đặt Bản gốc, Vietphrase, và Bản dịch cạnh nhau. Bạn thấy ngay chỗ nào Vietphrase sai, nhấn nút, dịch lại từng đoạn — không phải dịch lại cả chương.
-
-### Giọng nói — Edge TTS miễn phí
-
-Tám giọng neural từ Microsoft Edge, không tốn đồng nào: Việt Nam (Nữ, Nam), Anh (Nữ, Nam), Nhật, Hàn, Trung (Nữ, Nam). Tốc độ điều chỉnh được, audio stream thẳng tới trình duyệt. Bạn nghe thử giọng ngay trong giao diện, không cần mở tab khác.
-
-### Định dạng vào ra — không bắt bạn sửa file
-
-Đầu vào: TXT, EPUB, PDF, DOCX. Đầu ra: TXT, EPUB song ngữ (nguyên bản + bản dịch xen kẽ theo đoạn), Markdown, JSON.
-
-Tự động nhận diện encoding: UTF-8, GBK, Big5, Shift-JIS. Tự động tách chương bằng regex — bạn có thể tuỳ chỉnh regex nếu truyện của bạn dùng format lạ.
-
-### Ba chế độ đọc
-
-**Pipeline View** để bạn so sánh bản gốc với chuyển đổi và bản dịch cùng lúc. **Parallel Dual** đặt từng đoạn gốc-bản dịch cạnh nhau — lý tưởng để review thuật ngữ. **Reader Mode** biến cửa sổ thành phòng đọc: font lớn hơn, lề rộng hơn, TTS nút ngay cạnh đoạn văn. Muốn thay một tên xuyên suốt truyện? Tìm và thay thế chạy trên toàn bộ chương trong một lần.
-
-### Ghi chú từng chương
-
-Đôi khi bạn cần ghi lại "chỗ này cần review lại" hoặc "phần này AI dịch sai". Notes gắn liền với từng chương, lưu trên server, hiện ngay cạnh nội dung.
-
-### Bảo mật và vận hành
-
-Đăng ký, đăng nhập với JWT. Mật khẩu hash bằng bcrypt. Rate limit (slowapi) chặn lạm dụng. Mọi request được log structured (loguru) với thời gian xử lý — bạn biết chính xác endpoint nào chậm, request nào lỗi. Global error handler trả về thông báo sạch cho frontend, ghi log đầy đủ cho backend, kèm mã lỗi để bạn tra cứu.
-
----
-
-## Stack
-
-| Tầng | Công nghệ |
-|------|-----------|
-| Frontend | React 19, Vite, TypeScript strict mode |
-| Backend | Python 3.11, FastAPI, aiosqlite |
-| Cơ sở dữ liệu | SQLite (raw SQL, async) |
-| TTS | Edge TTS (miễn phí, cloud) |
-| Parse | chardet, PyMuPDF, python-docx, ebooklib |
-| Xác thực | JWT + bcrypt |
-| Rate limit | slowapi |
-| Log | loguru |
-| Test | Vitest (frontend), Pytest (backend) |
-| Đóng gói | Docker Compose (Nginx + FastAPI) |
-| Desktop | Tauri v2 (tuỳ chọn) |
-
----
-
-## Kiến trúc
-
+## 🏗️ Kiến trúc hệ thống
 ```mermaid
 graph TB
-    subgraph "Frontend (React 19)"
-        UI[Giao diện Editorial Ink] --> API[services/api.ts]
-        UI --> Trans[translators/index.ts]
-        UI --> Dict[dictionaries/vietphrase.ts]
-        UI --> Exp[exporters/]
-    end
-
-    subgraph "Backend (FastAPI)"
-        API -->|REST + JWT| BE[FastAPI routers]
-        BE --> DB[(SQLite)]
-        BE --> TTS[Edge TTS]
-        BE --> Parser[File Parsers]
-    end
-
-    subgraph "Nhà cung cấp AI"
-        Trans --> Gemini
-        Trans --> OpenAI
-        Trans --> Claude
-        Trans --> Mistral
-        Trans --> DeepSeek
-        Trans --> Cohere
-        Trans --> Groq
-        Trans --> Ollama
-        Trans --> GoogleFree[Google Free]
-        Trans --> MyMemory[MyMemory Free]
-    end
+subgraph "Frontend (React 19 + TypeScript)"
+    UI[Giao diện Editorial Ink] --> API[services/api.ts]
+    UI --> Trans[translators/index.ts]
+    UI --> Dict[dictionaries/vietphrase.ts]
+    UI --> Exp[exporters/]
+end
+subgraph "Backend (FastAPI Service)"
+    API -->|REST + JWT| BE[FastAPI Routers]
+    BE --> DB[(SQLite Async)]
+    BE --> TTS[Edge TTS Engine]
+    BE --> Parser[Document Parsers]
+end
+subgraph "AI Providers & Services"
+    Trans --> Gemini
+    Trans --> OpenAI
+    Trans --> Claude
+    Trans --> DeepSeek
+    Trans --> Ollama
+    Trans --> FreeProviders[Google / MyMemory]
+end
 ```
 
----
-
-## Cấu trúc dự án
-
-```
-ominovel-studio/
-├── src/                          # React frontend
-│   ├── components/               # UI components
-│   ├── hooks/                    # Custom React hooks
-│   │   ├── useProject.ts
-│   │   ├── useTheme.ts
-│   │   └── useKeyboardShortcuts.ts
+## 📂 Cấu trúc dự án
+```text
+omninovel-studio/
+├── src/                    # React frontend
+│   ├── components/         # UI components
+│   ├── hooks/              # Custom React hooks (useProject, useTheme, …)
 │   ├── services/
-│   │   ├── api.ts                # REST client + JWT
-│   │   ├── translators/          # Engine đa nguồn
-│   │   ├── dictionaries/         # Vietphrase client-side
-│   │   └── exporters/            # EPUB/PDF/DOCX/TXT
-│   └── types/                    # TypeScript types
-├── backend/                      # Python FastAPI
-│   ├── main.py                   # Entry, CORS, routers, middleware
-│   ├── security.py               # JWT + bcrypt + auth deps
-│   ├── database.py               # SQLite schema + async
-│   ├── models.py                 # Pydantic schemas
-│   ├── routers/                  # API endpoints
-│   └── services/                 # Business logic
-├── docker-compose.yml
-├── Dockerfile
-└── nginx.conf
+│   │   ├── api.ts          # REST client + JWT handling
+│   │   ├── translators/    # Engine đa nguồn (10 AI)
+│   │   ├── dictionaries/   # Vietphrase client‑side engine
+│   │   └── exporters/      # EPUB / PDF / DOCX / TXT exporters
+│   └── types/              # TypeScript interfaces
+├── backend/                # Python FastAPI backend
+│   ├── main.py             # Entrypoint, CORS, middleware & exception handlers
+│   ├── security.py         # JWT auth + bcrypt hashing
+│   ├── database.py         # Async SQLite connection & schema
+│   ├── models.py           # Pydantic schemas
+│   ├── routers/            # API endpoints (auth, projects, notes, tts, …)
+│   └── services/            # Business logic
+├── docker-compose.yml      # Orchestration cho Nginx + FastAPI
+├── Dockerfile              # Docker image cho frontend (nginx)
+└── nginx.conf              # Reverse‑proxy config
 ```
 
----
-
-## Bắt đầu
-
-### Phát triển web
-
+## 🚀 Hướng dẫn cài đặt & chạy
+### 1. Phát triển cục bộ
+**Backend**
 ```bash
-# Backend
 cd backend
 python -m venv venv
 # Windows: .\venv\Scripts\activate
 # macOS/Linux: source venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
+```
 
-# Frontend (terminal riêng)
+**Frontend** (trong terminal riêng)
+```bash
 npm install
 npm run dev
 ```
 
-Frontend chạy tại `http://localhost:5173`, backend API tại `http://localhost:8000/api`.
+*Frontend*: `http://localhost:5173`  
+*Backend API*: `http://localhost:8000/api`
 
-### Docker Compose
-
+### 2. Docker Compose (production‑ready)
 ```bash
-docker compose up --build
+docker compose up --build -d
 ```
 
-Frontend được Nginx phục vụ ở port 80, request `/api/*` được proxy sang backend ở port 8000.
+Frontend được Nginx phục vụ trên port 80, mọi request `/api/*` được proxy tới backend trên port 8000.
 
-### Desktop (Tauri)
-
+### 3. Desktop (Tauri v2)
 ```bash
 npm install
 npm run tauri:dev
 ```
 
----
+## 🔑 Thiết lập Nhà cung cấp AI
+| Nhà cung cấp | Nhận API Key | Chi phí |
+|-------------|--------------|---------|
+| **Google Translate** | Không cần | Miễn phí |
+| **MyMemory** | Không cần | Miễn phí |
+| **Ollama** | Cài đặt local | Miễn phí |
+| **Gemini** | [Google AI Studio](https://aistudio.google.com/apikey?authuser=1) | Free tier |
+| **OpenAI** | [OpenAI API](https://platform.openai.com/api-keys) | Pay‑per‑use |
+| **Claude** | [Anthropic Console](https://console.anthropic.com/api-keys) | Pay‑per‑use |
+| **Mistral** | [Console Mistral](https://console.mistral.ai/api-keys) | Free credits |
+| **DeepSeek** | [DeepSeek Platform](https://platform.deepseek.com/api-keys) | Rất rẻ |
+| **Cohere** | [Cohere Dashboard](https://dashboard.cohere.com/api-keys) | Free tier |
+| **Groq** | [Groq Console](https://console.groq.com/keys) | Free tier |
 
-## Cấu hình nhà cung cấp
+Bạn có thể bắt đầu ngay mà không cần API key – hai dịch vụ miễn phí (Google Translate & MyMemory) đáp ứng hầu hết nhu cầu.
 
-| Nhà cung cấp | Lấy API key | Chi phí |
-|---|---|---|
-| Google Translate | Không cần | Miễn phí |
-| MyMemory | Không cần | Miễn phí |
-| Gemini | [aistudio.google.com](https://aistudio.google.com/apikey) | Free tier hào phóng |
-| OpenAI | [platform.openai.com](https://platform.openai.com/api-keys) | Pay-per-use |
-| Claude | [console.anthropic.com](https://console.anthropic.com/api-keys) | Pay-per-use |
-| Mistral | [console.mistral.ai](https://console.mistral.ai/api-keys) | Free credits |
-| DeepSeek | [platform.deepseek.com](https://platform.deepseek.com/api-keys) | Rất rẻ |
-| Cohere | [dashboard.cohere.com](https://dashboard.cohere.com/api-keys) | Free tier |
-| Groq | [console.groq.com](https://console.groq.com/keys) | Free tier |
-| Ollama | Cài local | Luôn miễn phí |
-
-Bạn không cần API key để bắt đầu. Hai dịch vụ miễn phí sẽ đáp ứng phần lớn nhu cầu.
-
----
-
-## Phím tắt
-
+## ⌨️ Phím tắt mặc định
 | Phím | Hành động |
 |------|-----------|
-| `Ctrl+I` | Mở Import |
-| `Ctrl+E` | Mở Export |
-| `Ctrl+G` | Mở Glossary |
-| `Ctrl+,` | Mở Settings |
-| `Ctrl+/` | Bật / tắt sáng tối |
-| `Ctrl+Shift+B` | Mở Batch Translate |
+| `Ctrl + `Ctrl + I` | Mở nhanh bảng **Import sách** |
+ + `Ctrl + E` | Mở bảng **Export dữ liệu** |
+ + `Ctrl + G` | Quản lý **Glossary & thuật ngữ** |
+ + `Ctrl + ,` | Mở **Settings** (cấu hình API key, theme…) |
+ + `Ctrl + /` | Chuyển đổi giao diện **Sáng / Tối** (Editorial Ink) |
+ + `Ctrl + Shift + B` | Mở giao diện **Dịch hàng loạt** (Batch Translate) |
 
----
-
-## Kiểm thử
-
+## 🧪 Testing
 ```bash
-# Backend
+# Backend tests
 cd backend && pytest
 
-# Frontend
+# Frontend tests
 npm run test
 ```
 
-Backend có 27 test, frontend có 15 test, tất cả đều xanh trước mỗi commit.
+Tất cả test đều xanh (PASS) trước mỗi commit.
+
+## 📝 Giấy phép
+Dự án được phát hành dưới giấy phép **MIT**. Xem chi tiết trong file `LICENSE`.
 
 ---
 
-## Giấy phép
-
-MIT
+*Được phát triển và duy trì bởi **Lacia** – [GitHub Profile](https://github.com/Lacia1803).*
