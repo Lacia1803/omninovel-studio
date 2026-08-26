@@ -1,83 +1,27 @@
-import { useState, useEffect } from 'react';
-import confetti from 'canvas-confetti';
-import type { Chapter, NovelProject, TranslationSettings, ViewMode } from './types/novel';
-import { Navbar } from './components/Navbar';
-import { ChapterSidebar } from './components/ChapterSidebar';
-import { DualEditor } from './components/DualEditor';
-import { ImportModal } from './components/ImportModal';
-import { GlossaryManager } from './components/GlossaryManager';
-import { SettingsModal } from './components/SettingsModal';
-import { BatchTranslator } from './components/BatchTranslator';
-import { ExportModal } from './components/ExportModal';
-import { ReaderMode } from './components/ReaderMode';
-import { api } from './services/api';
-import { convertVietphrase } from './services/dictionaries/vietphrase';
-import { translateText } from './services/translators';
-
-// Default initial state
-const INITIAL_SETTINGS: TranslationSettings = {
-  provider: 'free_google',
-  apiKey: '',
-  model: 'gemini-2.0-flash',
-  stylePrompt: 'literary',
-  temperature: 0.3,
-  maxConcurrent: 2,
-  batchSize: 1,
-  applyGlossary: true,
-  autoChapterSplit: true
-};
-
-const INITIAL_PROJECT: NovelProject = {
-  id: `project_${Date.now()}`,
-  title: 'OmniNovel Studio',
-  author: 'Khuyết danh',
-  sourceLanguage: 'zh-CN',
-  targetLanguage: 'vi',
-  chapters: [],
-  glossary: [
-    { id: 'g1', sourceTerm: '老祖', targetTerm: 'Lão Tổ', category: 'name', enabled: true },
-    { id: 'g2', sourceTerm: '金丹', targetTerm: 'Kim Đan', category: 'technique', enabled: true },
-    { id: 'g3', sourceTerm: '元婴', targetTerm: 'Nguyên Anh', category: 'technique', enabled: true },
-  ],
-  settings: INITIAL_SETTINGS,
-  createdAt: Date.now(),
-  updatedAt: Date.now()
-};
+﻿import { useState, useEffect } from "react";
+import confetti from "canvas-confetti";
+import type { Chapter, ViewMode } from "./types/novel";
+import { Navbar } from "./components/Navbar";
+import { ChapterSidebar } from "./components/ChapterSidebar";
+import { DualEditor } from "./components/DualEditor";
+import { ImportModal } from "./components/ImportModal";
+import { GlossaryManager } from "./components/GlossaryManager";
+import { SettingsModal } from "./components/SettingsModal";
+import { BatchTranslator } from "./components/BatchTranslator";
+import { ExportModal } from "./components/ExportModal";
+import { ReaderMode } from "./components/ReaderMode";
+import { convertVietphrase } from "./services/dictionaries/vietphrase";
+import { translateText } from "./services/translators";
+import { useProject } from "./hooks/useProject";
+import { useTheme } from "./hooks/useTheme";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 
 export function App() {
-  // Persistence
-  const [project, setProject] = useState<NovelProject>(INITIAL_PROJECT);
-
-  // Load from API on mount, fallback to localStorage
-  useEffect(() => {
-    api.listProjects().then(async (projects) => {
-      if (projects.length > 0) {
-        const full = await api.getProject(projects[0].id);
-        setProject({
-          ...INITIAL_PROJECT,
-          ...full,
-          id: full.id,
-          title: full.title,
-          author: full.author,
-          sourceLanguage: full.source_language as any,
-          targetLanguage: full.target_language as any,
-          chapters: (full.chapters || []) as any,
-          glossary: (full.glossary || []) as any,
-          settings: JSON.parse(full.settings_json || '{}'),
-          createdAt: full.created_at,
-          updatedAt: full.updated_at,
-        });
-      }
-    }).catch(() => {
-      const saved = localStorage.getItem('omni_novel_project');
-      if (saved) {
-        try { setProject(JSON.parse(saved)); } catch { /* ignore */ }
-      }
-    });
-  }, []);
+  const { project, setProject, patchProject } = useProject();
+  const { theme, toggleTheme } = useTheme();
 
   const [activeChapterId, setActiveChapterId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('parallel_dual');
+  const [viewMode, setViewMode] = useState<ViewMode>("parallel_dual");
 
   // Modals
   const [isImportOpen, setIsImportOpen] = useState(false);
@@ -87,49 +31,29 @@ export function App() {
   const [isBatchOpen, setIsBatchOpen] = useState(false);
   const [isReaderOpen, setIsReaderOpen] = useState(false);
 
-  // Theme
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    return (localStorage.getItem('omni_theme') as 'light' | 'dark') || 'light';
-  });
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('omni_theme', theme);
-  }, [theme]);
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (!(e.ctrlKey || e.metaKey)) return;
-      const key = e.key.toLowerCase();
-      if (key === 'i' && !e.shiftKey) { e.preventDefault(); setIsImportOpen(true); }
-      else if (key === 'e' && !e.shiftKey) { e.preventDefault(); if (project.chapters.length > 0) setIsExportOpen(true); }
-      else if (key === 'g') { e.preventDefault(); setIsGlossaryOpen(true); }
-      else if (key === ',') { e.preventDefault(); setIsSettingsOpen(true); }
-      else if (key === '/') { e.preventDefault(); setTheme(t => t === 'light' ? 'dark' : 'light'); }
-      else if (key === 'b' && e.shiftKey) { e.preventDefault(); if (project.chapters.length > 0) setIsBatchOpen(true); }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [project.chapters.length, setTheme]);
-
   // Processing & Progress
   const [isProcessing, setIsProcessing] = useState(false);
-  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0, activeTitle: '' });
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0, activeTitle: "" });
 
-  // Sync to local storage
-  useEffect(() => {
-    localStorage.setItem('omni_novel_project', JSON.stringify(project));
-  }, [project]);
-
-  // Set default active chapter when chapters change
+  // Auto-select first chapter
   useEffect(() => {
     if (project.chapters.length > 0 && !activeChapterId) {
       setActiveChapterId(project.chapters[0].id);
     }
   }, [project.chapters]);
 
-  const activeChapter = project.chapters.find(c => c.id === activeChapterId) || null;
+  const activeChapter = project.chapters.find((c) => c.id === activeChapterId) || null;
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onImport: () => setIsImportOpen(true),
+    onExport: () => { if (project.chapters.length > 0) setIsExportOpen(true); },
+    onGlossary: () => setIsGlossaryOpen(true),
+    onSettings: () => setIsSettingsOpen(true),
+    onToggleTheme: toggleTheme,
+    onBatch: () => { if (project.chapters.length > 0) setIsBatchOpen(true); },
+    chapterCount: project.chapters.length,
+  });
 
   // Single Chapter Convert Vietphrase
   const handleConvertCurrentChapter = () => {
@@ -137,22 +61,22 @@ export function App() {
     setIsProcessing(true);
 
     const glossaryMap: Record<string, string> = {};
-    project.glossary.filter(g => g.enabled).forEach(g => {
+    project.glossary.filter((g) => g.enabled).forEach((g) => {
       glossaryMap[g.sourceTerm] = g.targetTerm;
     });
 
     const converted = convertVietphrase(activeChapter.originalContent, {
-      mode: 'vietphrase',
+      mode: "vietphrase",
       customGlossary: glossaryMap,
       cleanWatermarks: true,
-      normalizeParagraphs: true
+      normalizeParagraphs: true,
     });
 
-    const updatedChapters = project.chapters.map(c => 
-      c.id === activeChapter.id ? { ...c, convertedContent: converted, status: 'converted' as const } : c
+    const updatedChapters = project.chapters.map((c) =>
+      c.id === activeChapter.id ? { ...c, convertedContent: converted, status: "converted" as const } : c
     );
 
-    setProject({ ...project, chapters: updatedChapters, updatedAt: Date.now() });
+    patchProject({ chapters: updatedChapters });
     setIsProcessing(false);
   };
 
@@ -167,18 +91,16 @@ export function App() {
         sourceLang: project.sourceLanguage,
         targetLang: project.targetLanguage,
         settings: project.settings,
-        glossary: project.glossary
+        glossary: project.glossary,
       });
 
-      const updatedChapters = project.chapters.map(c => 
-        c.id === activeChapter.id ? { 
-          ...c, 
-          translatedContent: res.translatedText, 
-          status: 'translated' as const 
-        } : c
+      const updatedChapters = project.chapters.map((c) =>
+        c.id === activeChapter.id
+          ? { ...c, translatedContent: res.translatedText, status: "translated" as const }
+          : c
       );
 
-      setProject({ ...project, chapters: updatedChapters, updatedAt: Date.now() });
+      patchProject({ chapters: updatedChapters });
     } catch (err: any) {
       alert(`Dịch thất bại: ${err.message}`);
     } finally {
@@ -193,43 +115,43 @@ export function App() {
       sourceLang: project.sourceLanguage,
       targetLang: project.targetLanguage,
       settings: project.settings,
-      glossary: project.glossary
+      glossary: project.glossary,
     });
     return res.translatedText;
   };
 
   // Batch Processing
-  const handleStartBatch = async (chapterIds: string[], mode: 'ai' | 'vietphrase') => {
+  const handleStartBatch = async (chapterIds: string[], mode: "ai" | "vietphrase") => {
     setIsProcessing(true);
-    setBatchProgress({ current: 0, total: chapterIds.length, activeTitle: '' });
+    setBatchProgress({ current: 0, total: chapterIds.length, activeTitle: "" });
 
     const updatedChapters = [...project.chapters];
 
     for (let i = 0; i < chapterIds.length; i++) {
       const id = chapterIds[i];
-      const chapIndex = updatedChapters.findIndex(c => c.id === id);
+      const chapIndex = updatedChapters.findIndex((c) => c.id === id);
       if (chapIndex === -1) continue;
 
       const chap = updatedChapters[chapIndex];
       setBatchProgress({ current: i + 1, total: chapterIds.length, activeTitle: chap.title });
 
-      if (mode === 'vietphrase') {
+      if (mode === "vietphrase") {
         const glossaryMap: Record<string, string> = {};
-        project.glossary.filter(g => g.enabled).forEach(g => {
+        project.glossary.filter((g) => g.enabled).forEach((g) => {
           glossaryMap[g.sourceTerm] = g.targetTerm;
         });
 
         const converted = convertVietphrase(chap.originalContent, {
-          mode: 'vietphrase',
+          mode: "vietphrase",
           customGlossary: glossaryMap,
           cleanWatermarks: true,
-          normalizeParagraphs: true
+          normalizeParagraphs: true,
         });
 
         updatedChapters[chapIndex] = {
           ...chap,
           convertedContent: converted,
-          status: 'converted'
+          status: "converted",
         };
       } else {
         try {
@@ -238,20 +160,20 @@ export function App() {
             sourceLang: project.sourceLanguage,
             targetLang: project.targetLanguage,
             settings: project.settings,
-            glossary: project.glossary
+            glossary: project.glossary,
           });
 
           updatedChapters[chapIndex] = {
             ...chap,
             translatedContent: res.translatedText,
-            status: 'translated'
+            status: "translated",
           };
         } catch (err) {
           console.error(`Batch Error on chapter ${chap.title}:`, err);
         }
       }
 
-      setProject(prev => ({ ...prev, chapters: updatedChapters, updatedAt: Date.now() }));
+      patchProject({ chapters: updatedChapters });
     }
 
     setIsProcessing(false);
@@ -259,7 +181,6 @@ export function App() {
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
   };
 
-  // Inline Add to Glossary
   return (
     <div className="app-shell">
       {/* Header Bar */}
@@ -276,7 +197,7 @@ export function App() {
         onTranslateCurrentChapter={handleTranslateCurrentChapter}
         isProcessing={isProcessing}
         theme={theme}
-        onToggleTheme={() => setTheme(t => t === 'light' ? 'dark' : 'light')}
+        onToggleTheme={toggleTheme}
       />
 
       {/* Main Studio Body */}
@@ -290,21 +211,21 @@ export function App() {
               id: `chap_${Date.now()}`,
               number: project.chapters.length + 1,
               title: `Chương ${project.chapters.length + 1}`,
-              originalContent: 'Nhập nội dung chương mới vào đây...',
-              status: 'raw'
+              originalContent: "Nhập nội dung chương mới vào đây...",
+              status: "raw",
             };
-            setProject({ ...project, chapters: [...project.chapters, newChap] });
+            patchProject({ chapters: [...project.chapters, newChap] });
             setActiveChapterId(newChap.id);
           }}
           onDeleteChapter={(id) => {
-            const updated = project.chapters.filter(c => c.id !== id);
-            setProject({ ...project, chapters: updated });
+            const updated = project.chapters.filter((c) => c.id !== id);
+            patchProject({ chapters: updated });
             if (activeChapterId === id) {
               setActiveChapterId(updated[0]?.id || null);
             }
           }}
-          onConvertSelected={(ids) => handleStartBatch(ids, 'vietphrase')}
-          onTranslateSelected={(ids) => handleStartBatch(ids, 'ai')}
+          onConvertSelected={(ids) => handleStartBatch(ids, "vietphrase")}
+          onTranslateSelected={(ids) => handleStartBatch(ids, "ai")}
         />
 
         <DualEditor
@@ -312,9 +233,8 @@ export function App() {
           viewMode={viewMode}
           onChangeViewMode={setViewMode}
           onUpdateChapter={(updated) => {
-            setProject({
-              ...project,
-              chapters: project.chapters.map(c => c.id === updated.id ? updated : c)
+            patchProject({
+              chapters: project.chapters.map((c) => (c.id === updated.id ? updated : c)),
             });
           }}
           onTranslateParagraph={handleTranslateParagraph}
@@ -326,12 +246,11 @@ export function App() {
         isOpen={isImportOpen}
         onClose={() => setIsImportOpen(false)}
         onImportComplete={({ title, author, chapters, sourceLanguage }) => {
-          setProject({
-            ...project,
+          patchProject({
             title: title || project.title,
             author: author || project.author,
             sourceLanguage,
-            chapters
+            chapters,
           });
           if (chapters.length > 0) {
             setActiveChapterId(chapters[0].id);
@@ -343,14 +262,14 @@ export function App() {
         isOpen={isGlossaryOpen}
         onClose={() => setIsGlossaryOpen(false)}
         glossary={project.glossary}
-        onUpdateGlossary={(updated) => setProject({ ...project, glossary: updated })}
+        onUpdateGlossary={(updated) => patchProject({ glossary: updated })}
       />
 
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         settings={project.settings}
-        onUpdateSettings={(updated) => setProject({ ...project, settings: updated })}
+        onUpdateSettings={(updated) => patchProject({ settings: updated })}
       />
 
       <BatchTranslator
@@ -374,7 +293,7 @@ export function App() {
           isOpen={isReaderOpen}
           onClose={() => setIsReaderOpen(false)}
           chapters={project.chapters}
-          currentChapterId={activeChapterId || ''}
+          currentChapterId={activeChapterId || ""}
           onSelectChapter={setActiveChapterId}
         />
       )}
