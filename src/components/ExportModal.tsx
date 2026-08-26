@@ -44,8 +44,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, proje
           const a = document.createElement('a');
           a.href = url;
           a.download = `${project.title}_bilingual.epub`;
+          document.body.appendChild(a);
           a.click();
-          URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
           break;
         }
       }

@@ -108,7 +108,10 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, voice: voice || 'vi-VN-HoaiMyNeural', rate: rate || '+0%' }),
     });
-    if (!res.ok) throw new Error('TTS generation failed');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(err.detail || 'TTS generation failed');
+    }
     return res.blob();
   },
   listVoices: () => request<{ id: string; name: string }[]>('/tts/voices'),
@@ -116,7 +119,10 @@ export const api = {
   // Bilingual EPUB Export
   exportBilingualEPUB: async (pid: string): Promise<Blob> => {
     const res = await fetch(`${API_BASE}/projects/${pid}/export/bilingual-epub`);
-    if (!res.ok) throw new Error('EPUB export failed');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(err.detail || 'EPUB export failed');
+    }
     return res.blob();
   },
 };
