@@ -130,8 +130,28 @@ p { margin: 0.5em 0; text-align: justify; }
 
     book.toc = toc
     book.spine = spine
-    book.add_item(epub.EpubNcx())
-    book.add_item(epub.EpubNav())
+
+    # Add NCX for EPUB 2 compatibility
+    ncx = epub.EpubNcx()
+    ncx_nav = """<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN" "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+<head>
+<meta name="dtb:uid" content="urn:uuid:omninovel"/>
+</head>
+<docTitle><text>{title}</text></docTitle>
+<navMap>
+{nav_items}
+</navMap>
+</ncx>""".format(
+        title=project_title,
+        nav_items='\n'.join(
+            f'<navPoint id="navPoint-{i+1}" playOrder="{i+1}"><navLabel><text>{ch.title}</text></navLabel><content src="{ch.file_name}"/></navPoint>'
+            for i, ch in enumerate(epub_chapters)
+        )
+    )
+    ncx.content = ncx_nav.encode('utf-8')
+    book.add_item(ncx)
 
     buffer = io.BytesIO()
     epub.write_epub(buffer, book, {})

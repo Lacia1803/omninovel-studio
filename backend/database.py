@@ -40,6 +40,16 @@ CREATE TABLE IF NOT EXISTS glossary (
 
 CREATE INDEX IF NOT EXISTS idx_chapters_project ON chapters(project_id);
 CREATE INDEX IF NOT EXISTS idx_glossary_project ON glossary(project_id);
+
+CREATE TABLE IF NOT EXISTS chapter_notes (
+    id TEXT PRIMARY KEY,
+    chapter_id TEXT NOT NULL,
+    note TEXT DEFAULT '',
+    updated_at INTEGER NOT NULL,
+    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_notes_chapter ON chapter_notes(chapter_id);
 """
 
 
