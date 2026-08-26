@@ -261,7 +261,7 @@ export function App() {
 
   // Inline Add to Glossary
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden bg-slate-950 text-slate-100">
+    <div className="app-shell">
       {/* Header Bar */}
       <Navbar
         project={project}
@@ -280,7 +280,7 @@ export function App() {
       />
 
       {/* Main Studio Body */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="app-body">
         <ChapterSidebar
           chapters={project.chapters}
           activeChapterId={activeChapterId}
