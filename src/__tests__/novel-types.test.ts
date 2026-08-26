@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Chapter, GlossaryItem, TranslationSettings } from '../types/novel';
+import type { Chapter, GlossaryItem } from '../types/novel';
 
 describe('Novel types', () => {
   it('Chapter has required fields', () => {
