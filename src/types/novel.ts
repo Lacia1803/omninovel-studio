@@ -33,6 +33,9 @@ export type TranslationProvider =
   | 'openai' 
   | 'deepseek' 
   | 'claude' 
+  | 'mistral'
+  | 'cohere'
+  | 'groq'
   | 'ollama'
   | 'vietphrase_only';
 
@@ -52,7 +55,7 @@ export interface TranslationSettings {
 }
 
 export type ReaderTheme = 'light' | 'dark' | 'sepia' | 'emerald' | 'cyberpunk' | 'nord';
-export type ViewMode = 'parallel_dual' | 'single_translated' | 'single_converted' | 'single_original' | 'interleaved';
+export type ViewMode = 'parallel_dual' | 'single_translated' | 'single_converted' | 'single_original' | 'interleaved' | 'parallel_converted_translated';
 
 export interface ReaderSettings {
   theme: ReaderTheme;

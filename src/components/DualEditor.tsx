@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Columns2, FileText, Sparkles, Languages, Edit3, Save,
-  Search, RefreshCw, Copy, Check, RotateCcw
+  Search, RefreshCw, Copy, Check, RotateCcw, Layers, ArrowRight
 } from 'lucide-react';
 import type { Chapter, ViewMode } from '../types/novel';
 
@@ -145,8 +145,15 @@ export const DualEditor: React.FC<DualEditorProps> = ({
             onClick={() => onChangeViewMode('single_original')}
           >
             <FileText size={12} strokeWidth={2} /> Gốc
-          </button>
-        </div>
+         </button>
+          <button
+            className={`view-tab ${viewMode === 'parallel_converted_translated' ? 'active' : ''}`}
+            onClick={() => onChangeViewMode('parallel_converted_translated')}
+            title="Original → Vietphrase → AI Translation"
+          >
+            <Layers size={12} strokeWidth={2} /> Pipeline
+         </button>
+       </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <button
@@ -286,6 +293,83 @@ export const DualEditor: React.FC<DualEditorProps> = ({
               value={chapter.originalContent}
               onChange={e => onUpdateChapter({ ...chapter, originalContent: e.target.value })}
             />
+          </div>
+        )}
+
+        {/* PARALLEL CONVERTED + TRANSLATED — Pipeline View */}
+        {viewMode === 'parallel_converted_translated' && (
+          <div className="pipeline-container">
+            <div className="pipeline-header">
+              <div className="pipeline-step">
+                <span className="pipeline-step-num">①</span>
+                <span className="pipeline-step-label">Bản Gốc</span>
+              </div>
+              <ArrowRight size={16} className="pipeline-arrow" />
+              <div className="pipeline-step pipeline-step-convert">
+                <span className="pipeline-step-num">②</span>
+                <span className="pipeline-step-label">Vietphrase / Hán Việt</span>
+              </div>
+              <ArrowRight size={16} className="pipeline-arrow" />
+              <div className="pipeline-step pipeline-step-translate">
+                <span className="pipeline-step-num">③</span>
+                <span className="pipeline-step-label">Dịch AI</span>
+              </div>
+            </div>
+
+            <div className="pipeline-paragraphs">
+              {origParagraphs.map((origText, idx) => {
+                const convText = convParagraphs[idx] || '';
+                const transText = transParagraphs[idx] || '';
+                return (
+                  <div key={idx} className="pipeline-row">
+                    <div className="pipeline-cell pipeline-cell-original">
+                      <div className="pipeline-cell-header">
+                        <span className="pipeline-cell-num">¶{String(idx + 1).padStart(3, '0')}</span>
+                      </div>
+                      <p className="pipeline-cell-text">{origText}</p>
+                    </div>
+
+                    <div className="pipeline-cell pipeline-cell-converted">
+                      <textarea
+                        className="pipeline-cell-textarea pipeline-mono"
+                        value={convText}
+                        placeholder={convText === '' ? '— chưa convert —' : ''}
+                        onChange={e => {
+                          const updated = [...convParagraphs];
+                          updated[idx] = e.target.value;
+                          onUpdateChapter({ ...chapter, convertedContent: updated.join('\n\n'), status: 'converted' });
+                        }}
+                      />
+                    </div>
+
+                    <div className="pipeline-cell pipeline-cell-translated">
+                      <div className="pipeline-cell-header">
+                        <button
+                          className="para-retranslate-btn"
+                          onClick={() => handleRetranslate(idx, convText || origText)}
+                          disabled={translatingIdx === idx}
+                          title="Dịch lại đoạn này"
+                        >
+                          {translatingIdx === idx
+                            ? <><span className="spinner" style={{ width: 10, height: 10 }} /> Đang dịch</>
+                            : <><RefreshCw size={10} strokeWidth={2} /> Dịch lại</>}
+                        </button>
+                      </div>
+                      <textarea
+                        className="pipeline-cell-textarea"
+                        value={transText}
+                        placeholder="— AI chưa dịch —"
+                        onChange={e => {
+                          const updated = [...transParagraphs];
+                          updated[idx] = e.target.value;
+                          onUpdateChapter({ ...chapter, translatedContent: updated.join('\n\n') });
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>

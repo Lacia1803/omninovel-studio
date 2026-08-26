@@ -98,6 +98,18 @@ export async function translateText(req: TranslateRequest): Promise<TranslateRes
       case 'deepseek':
         return await translateDeepSeek(processedText, settings, glossary);
 
+      case 'claude':
+        return await translateClaude(processedText, settings, glossary);
+
+      case 'mistral':
+        return await translateMistral(processedText, settings, glossary);
+
+      case 'cohere':
+        return await translateCohere(processedText, settings, glossary);
+
+      case 'groq':
+        return await translateGroq(processedText, settings, glossary);
+
       case 'ollama':
         return await translateOllama(processedText, settings, glossary);
 
@@ -336,8 +348,181 @@ async function translateOllama(text: string, settings: TranslationSettings, glos
 }
 
 /**
- * Utility: Split large text into smaller chunks at paragraph boundaries
+ *******************************************************************************************
+ * NEW PROVIDER ADAPTERS
+ *******************************************************************************************
  */
+
+/** Claude 3 Adapter (Anthropic Messages API) */
+async function translateClaude(text: string, settings: TranslationSettings, glossary: GlossaryItem[]): Promise<TranslateResponse> {
+  if (!settings.apiKey) {
+    throw new Error('Vui lòng nhập API Key cho Anthropic Claude trong cài đặt.');
+  }
+
+  const model = settings.model || 'claude-3-5-sonnet-20240620';
+  const systemPrompt = buildNovelSystemPrompt(settings, glossary);
+  
+  const endpoint = settings.customEndpoint || 'https://api.anthropic.com/v1/messages';
+  
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': settings.apiKey,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({
+      model: model,
+      max_tokens: 4000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: text }],
+      temperature: settings.temperature || 0.3
+    })
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error?.message || `Claude API Error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  const translatedText = data.content?.[0]?.text || text;
+  const tokenCount = data.usage?.input_tokens + data.usage?.output_tokens;
+
+  return {
+    translatedText: translatedText.trim(),
+    providerUsed: `Claude (${model})`,
+    tokenCount: tokenCount
+  };
+}
+
+/** Mistral Adapter (OpenAI-compatible) */
+async function translateMistral(text: string, settings: TranslationSettings, glossary: GlossaryItem[]): Promise<TranslateResponse> {
+  if (!settings.apiKey) {
+    throw new Error('Vui lòng nhập API Key cho Mistral AI trong cài đặt.');
+  }
+
+  const endpoint = settings.customEndpoint || 'https://api.mistral.ai/v1/chat/completions';
+  const model = settings.model || 'mistral-large-latest';
+  const systemPrompt = buildNovelSystemPrompt(settings, glossary);
+
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${settings.apiKey}`
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: text }
+      ],
+      temperature: settings.temperature || 0.3
+    })
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error?.message || `Mistral API Error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  const translatedText = data.choices?.[0]?.message?.content || text;
+  const tokenCount = data.usage?.total_tokens;
+
+  return {
+    translatedText: translatedText.trim(),
+    providerUsed: `Mistral (${model})`,
+    tokenCount: tokenCount
+  };
+}
+
+/** Cohere Adapter (Command API) */
+async function translateCohere(text: string, settings: TranslationSettings, glossary: GlossaryItem[]): Promise<TranslateResponse> {
+  if (!settings.apiKey) {
+    throw new Error('Vui lòng nhập API Key cho Cohere trong cài đặt.');
+  }
+
+  const model = settings.model || 'command-r-plus';
+  const systemPrompt = buildNovelSystemPrompt(settings, glossary);
+  
+  const endpoint = settings.customEndpoint || 'https://api.cohere.ai/v1/chat';
+  
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${settings.apiKey}`
+    },
+    body: JSON.stringify({
+      model: model,
+      message: text,
+      preamble: systemPrompt,
+      temperature: settings.temperature || 0.3
+    })
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error?.message || `Cohere API Error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  const translatedText = data.text || text;
+  const tokenCount = data.meta?.billed_units?.input_tokens + data.meta?.billed_units?.output_tokens;
+
+  return {
+    translatedText: translatedText.trim(),
+    providerUsed: `Cohere (${model})`,
+    tokenCount: tokenCount
+  };
+}
+
+/** Groq Adapter (OpenAI-compatible, Ultra-fast) */
+async function translateGroq(text: string, settings: TranslationSettings, glossary: GlossaryItem[]): Promise<TranslateResponse> {
+  if (!settings.apiKey) {
+    throw new Error('Vui lòng nhập API Key cho Groq trong cài đặt.');
+  }
+
+  const endpoint = settings.customEndpoint || 'https://api.groq.com/openai/v1/chat/completions';
+  const model = settings.model || 'llama3-8b-8192';
+  const systemPrompt = buildNovelSystemPrompt(settings, glossary);
+
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${settings.apiKey}`
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: text }
+      ],
+      temperature: settings.temperature || 0.3
+    })
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error?.message || `Groq API Error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  const translatedText = data.choices?.[0]?.message?.content || text;
+  const tokenCount = data.usage?.total_tokens;
+
+  return {
+    translatedText: translatedText.trim(),
+    providerUsed: `Groq (${model})`,
+    tokenCount: tokenCount
+  };
+}
+
+/**
+ * Utility: Split large text into smaller chunks at paragraph boundaries */
 function splitTextIntoChunks(text: string, maxChunkLength: number): string[] {
   if (text.length <= maxChunkLength) return [text];
 
