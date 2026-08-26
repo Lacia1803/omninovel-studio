@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { translateText, applyPreGlossary } from '../services/translators/index';
-import type { TranslationSettings } from '../types/novel';
+import type { TranslationSettings, GlossaryItem } from '../types/novel';
 
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
@@ -14,7 +14,7 @@ const baseSettings: TranslationSettings = {
   maxConcurrent: 5,
   applyGlossary: false,
   batchSize: 5,
-  batchDelayMs: 1000,
+  autoChapterSplit: false,
 };
 
 beforeEach(() => {
@@ -28,31 +28,31 @@ describe('applyPreGlossary', () => {
   });
 
   it('returns empty string for empty input', () => {
-    expect(applyPreGlossary('', [{ id: '1', sourceTerm: 'a', targetTerm: 'b', enabled: true }])).toBe('');
+    const glossary: GlossaryItem[] = [{ id: '1', sourceTerm: 'a', targetTerm: 'b', category: 'name', enabled: true }];
+    expect(applyPreGlossary('', glossary)).toBe('');
   });
 
   it('replaces enabled glossary terms', () => {
-    const glossary = [
-      { id: '1', sourceTerm: 'Tần Vũ', targetTerm: 'Tần Vũ (Qin Yu)', enabled: true },
-      { id: '2', sourceTerm: 'Hầu', targetTerm: 'Hầu Gia', enabled: true },
+    const glossary: GlossaryItem[] = [
+      { id: '1', sourceTerm: 'Tần Vũ', targetTerm: 'Tần Vũ (Qin Yu)', category: 'name', enabled: true },
+      { id: '2', sourceTerm: 'Hầu', targetTerm: 'Hầu Gia', category: 'general', enabled: true },
     ];
     const result = applyPreGlossary('Tần Vũ là một Hầu giỏi', glossary);
     expect(result).toBe('Tần Vũ (Qin Yu) là một Hầu Gia giỏi');
   });
 
   it('skips disabled glossary terms', () => {
-    const glossary = [
-      { id: '1', sourceTerm: 'hello', targetTerm: 'xin chào', enabled: false },
+    const glossary: GlossaryItem[] = [
+      { id: '1', sourceTerm: 'hello', targetTerm: 'xin chào', category: 'name', enabled: false },
     ];
     expect(applyPreGlossary('hello', glossary)).toBe('hello');
   });
 
   it('replaces longer terms first', () => {
-    const glossary = [
-      { id: '1', sourceTerm: 'táo', targetTerm: 'táo apple', enabled: true },
-      { id: '2', sourceTerm: 'quả táo', targetTerm: 'apple', enabled: true },
+    const glossary: GlossaryItem[] = [
+      { id: '1', sourceTerm: 'táo', targetTerm: 'táo apple', category: 'name', enabled: true },
+      { id: '2', sourceTerm: 'quả táo', targetTerm: 'apple', category: 'name', enabled: true },
     ];
-    // longer term "quả táo" should match first
     const result = applyPreGlossary('quả táo ngon', glossary);
     expect(result).toBe('apple ngon');
   });
@@ -69,7 +69,6 @@ describe('translateText', () => {
   });
 
   it('dispatches to free_google provider', async () => {
-    // Google Translate API returns: [[["translated", "original", ...]], ...]
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => [[['Xin chào', '你好', null, null, 3]]],
@@ -117,8 +116,8 @@ describe('translateText', () => {
       json: async () => ({ data: { translations: [{ translatedText: 'translated' }] } }),
     });
 
-    const glossary = [
-      { id: '1', sourceTerm: 'Shrek', targetTerm: 'Shrek already translated', enabled: true },
+    const glossary: GlossaryItem[] = [
+      { id: '1', sourceTerm: 'Shrek', targetTerm: 'Shrek already translated', category: 'name', enabled: true },
     ];
 
     await translateText({
@@ -127,7 +126,6 @@ describe('translateText', () => {
       glossary,
     });
 
-    // Verify fetch was called (google free processes the text)
     expect(mockFetch).toHaveBeenCalledOnce();
   });
 });

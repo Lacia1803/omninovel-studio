@@ -1,7 +1,6 @@
 # OmniNovel Studio 📖
-[![License](https://img.shields.io/github/license/Lacia1803/omninovel-studio)](LICENSE)
-[![Version](https://img.shields.io/github/v/release/Lacia1803/omninovel-studio)](https://github.com/Lacia1803/omninovel-studio/releases)
-[![Build Status](https://github.com/Lacia1803/omninovel-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/Lacia1803/omninovel-studio/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI](https://github.com/Lacia1803/omninovel-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/Lacia1803/omninovel-studio/actions/workflows/ci.yml)
 
 **Một ứng dụng toàn diện giúp **dịch, chuyển đổi và xuất bản** tiểu thuyết song ngữ với hệ thống Glossary nhất quán và tích hợp 10 nhà cung cấp AI.**
 
@@ -135,12 +134,12 @@ Bạn có thể bắt đầu ngay mà không cần API key – hai dịch vụ m
 ## ⌨️ Phím tắt mặc định
 | Phím | Hành động |
 |------|-----------|
-| `Ctrl + `Ctrl + I` | Mở nhanh bảng **Import sách** |
- + `Ctrl + E` | Mở bảng **Export dữ liệu** |
- + `Ctrl + G` | Quản lý **Glossary & thuật ngữ** |
- + `Ctrl + ,` | Mở **Settings** (cấu hình API key, theme…) |
- + `Ctrl + /` | Chuyển đổi giao diện **Sáng / Tối** (Editorial Ink) |
- + `Ctrl + Shift + B` | Mở giao diện **Dịch hàng loạt** (Batch Translate) |
+| `Ctrl + I` | Mở nhanh bảng **Import sách** |
+| `Ctrl + E` | Mở bảng **Export dữ liệu** |
+| `Ctrl + G` | Quản lý **Glossary & thuật ngữ** |
+| `Ctrl + ,` | Mở **Settings** (cấu hình API key, theme…) |
+| `Ctrl + /` | Chuyển đổi giao diện **Sáng / Tối** (Editorial Ink) |
+| `Ctrl + Shift + B` | Mở giao diện **Dịch hàng loạt** (Batch Translate) |
 
 ## 🧪 Testing
 ```bash
