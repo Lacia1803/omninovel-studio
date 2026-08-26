@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Upload, Download, Settings, BookMarked, Languages, Play, Sparkles, Eye, PenLine } from 'lucide-react';
+import { BookOpen, Upload, Download, Settings, BookMarked, Languages, Play, Sparkles, Eye, PenLine, Sun, Moon } from 'lucide-react';
 import type { NovelProject } from '../types/novel';
 
 interface NavbarProps {
@@ -14,13 +14,15 @@ interface NavbarProps {
   onConvertCurrentChapter: () => void;
   onTranslateCurrentChapter: () => void;
   isProcessing: boolean;
+  theme: 'light' | 'dark';
+  onToggleTheme: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   project, onUpdateProject, onOpenImport, onOpenExport,
   onOpenSettings, onOpenGlossary, onOpenBatchTranslate,
   onToggleReaderMode, onConvertCurrentChapter, onTranslateCurrentChapter,
-  isProcessing,
+  isProcessing, theme, onToggleTheme,
 }) => {
   return (
     <header className="app-topbar">
@@ -116,6 +118,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           title="Export"
         >
           <Download size={14} color="#c13828" strokeWidth={2} />
+        </button>
+
+        <button onClick={onToggleTheme} className="btn btn-ghost btn-icon" title={theme === 'dark' ? 'Light mode' : 'Dark mode'}>
+          {theme === 'dark' ? <Sun size={14} strokeWidth={2} /> : <Moon size={14} strokeWidth={2} />}
         </button>
 
         <button onClick={onOpenSettings} className="btn btn-ghost btn-icon" title="Settings">

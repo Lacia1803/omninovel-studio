@@ -1,10 +1,4 @@
 """TTS Service — Edge TTS (free, cloud) + future Piper/XTTS-v2 support."""
-import tempfile
-import os
-from pathlib import Path
-
-# Edge TTS is the primary free provider
-# Piper (local ONNX) and XTTS-v2 (voice cloning) added later
 
 EDGETTS_VOICES = {
     "vi-VN-HoaiMyNeural": "Vietnamese (Female)",
@@ -22,18 +16,17 @@ async def generate_tts_edge(text: str, voice: str = "vi-VN-HoaiMyNeural", rate: 
     """Generate TTS audio using Edge TTS (free, no API key)."""
     try:
         import edge_tts
-        import asyncio
     except ImportError:
         raise RuntimeError("edge-tts not installed: pip install edge-tts")
 
     communicate = edge_tts.Communicate(text, voice, rate=rate)
 
-    audio_data = b""
+    chunks = []
     async for chunk in communicate.stream():
         if chunk["type"] == "audio":
-            audio_data += chunk["data"]
+            chunks.append(chunk["data"])
 
-    return audio_data
+    return b"".join(chunks)
 
 
 async def generate_tts(text: str, provider: str = "edge", voice: str = "vi-VN-HoaiMyNeural", rate: str = "+0%") -> dict:

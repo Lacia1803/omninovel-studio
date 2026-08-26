@@ -285,6 +285,28 @@ export async function exportToDocx(project: NovelProject, contentType: 'translat
 }
 
 /**
+ * Export Markdown File
+ */
+export function exportToMarkdown(project: NovelProject, contentType: 'translated' | 'converted' | 'original' = 'translated') {
+  let md = `# ${project.title}\n\n`;
+  md += `**Tác giả:** ${project.author}\n\n`;
+  md += `---\n\n`;
+
+  project.chapters.forEach(chap => {
+    md += `## ${chap.title}\n\n`;
+
+    const bodyText = (contentType === 'translated' ? chap.translatedContent :
+                     contentType === 'converted' ? chap.convertedContent :
+                     chap.originalContent) || chap.originalContent;
+
+    md += bodyText.split('\n').filter(p => p.trim()).join('\n\n') + '\n\n';
+  });
+
+  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+  downloadBlob(blob, `${sanitizeFilename(project.title)}_${contentType}.md`);
+}
+
+/**
  * Export Project File (`.novelproject` backup)
  */
 export function exportProjectFile(project: NovelProject) {

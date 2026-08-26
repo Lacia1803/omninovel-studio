@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Download, X, FileText, FileType, File, BookOpen, Database, Sparkles, Languages } from 'lucide-react';
 import type { NovelProject } from '../types/novel';
-import { exportToTxt, exportToEpub, exportToPdf, exportToDocx, exportProjectFile } from '../services/exporters';
+import { exportToTxt, exportToEpub, exportToPdf, exportToDocx, exportToMarkdown, exportProjectFile } from '../services/exporters';
 import { api } from '../services/api';
 
 interface ExportModalProps {
@@ -10,13 +10,14 @@ interface ExportModalProps {
   project: NovelProject;
 }
 
-type ExportFormat = 'txt' | 'epub' | 'pdf' | 'docx' | 'json' | 'bilingual-epub';
+type ExportFormat = 'txt' | 'epub' | 'pdf' | 'docx' | 'md' | 'json' | 'bilingual-epub';
 
 const FORMATS: { id: ExportFormat; label: string; icon: React.ReactNode; color: string; desc: string }[] = [
   { id: 'txt',  label: 'TXT',  icon: <FileText size={18} strokeWidth={1.5} />,   color: 'var(--col-ink-3)',  desc: 'Văn bản thuần, đọc mọi nơi' },
   { id: 'epub', label: 'EPUB', icon: <BookOpen size={18} strokeWidth={1.5} />,  color: 'var(--accent-jade)', desc: 'Sách điện tử, Kindle, Apple Books' },
   { id: 'pdf',  label: 'PDF',  icon: <FileType size={18} strokeWidth={1.5} />,  color: 'var(--accent-vermilion)', desc: 'Định dạng chuẩn, in ấn' },
   { id: 'docx', label: 'DOCX', icon: <File size={18} strokeWidth={1.5} />,     color: 'var(--accent-indigo)', desc: 'Microsoft Word' },
+  { id: 'md',   label: 'MD',   icon: <FileText size={18} strokeWidth={1.5} />, color: 'var(--col-ink-2)',    desc: 'Markdown, GitHub, Notion' },
   { id: 'json', label: 'JSON', icon: <Database size={18} strokeWidth={1.5} />, color: 'var(--accent-gold)', desc: 'Backup project, import lại sau' },
   { id: 'bilingual-epub', label: 'Song Ngữ', icon: <Languages size={18} strokeWidth={1.5} />, color: '#9333ea', desc: 'EPUB song ngữ, bản gốc + bản dịch' },
 ];
@@ -36,6 +37,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, proje
         case 'epub': await exportToEpub(project, contentType); break;
         case 'pdf':  await exportToPdf(project, contentType); break;
         case 'docx': await exportToDocx(project, contentType); break;
+        case 'md':   await exportToMarkdown(project, contentType); break;
         case 'json': exportProjectFile(project); break;
         case 'bilingual-epub': {
           if (!project.id) throw new Error('Project must be saved before exporting');
@@ -44,8 +46,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, proje
           const a = document.createElement('a');
           a.href = url;
           a.download = `${project.title}_bilingual.epub`;
+          document.body.appendChild(a);
           a.click();
-          URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
           break;
         }
       }

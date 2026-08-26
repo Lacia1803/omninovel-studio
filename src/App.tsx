@@ -87,6 +87,32 @@ export function App() {
   const [isBatchOpen, setIsBatchOpen] = useState(false);
   const [isReaderOpen, setIsReaderOpen] = useState(false);
 
+  // Theme
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    return (localStorage.getItem('omni_theme') as 'light' | 'dark') || 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('omni_theme', theme);
+  }, [theme]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const key = e.key.toLowerCase();
+      if (key === 'i' && !e.shiftKey) { e.preventDefault(); setIsImportOpen(true); }
+      else if (key === 'e' && !e.shiftKey) { e.preventDefault(); if (project.chapters.length > 0) setIsExportOpen(true); }
+      else if (key === 'g') { e.preventDefault(); setIsGlossaryOpen(true); }
+      else if (key === ',') { e.preventDefault(); setIsSettingsOpen(true); }
+      else if (key === '/') { e.preventDefault(); setTheme(t => t === 'light' ? 'dark' : 'light'); }
+      else if (key === 'b' && e.shiftKey) { e.preventDefault(); if (project.chapters.length > 0) setIsBatchOpen(true); }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [project.chapters.length, setTheme]);
+
   // Processing & Progress
   const [isProcessing, setIsProcessing] = useState(false);
   const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0, activeTitle: '' });
@@ -249,6 +275,8 @@ export function App() {
         onConvertCurrentChapter={handleConvertCurrentChapter}
         onTranslateCurrentChapter={handleTranslateCurrentChapter}
         isProcessing={isProcessing}
+        theme={theme}
+        onToggleTheme={() => setTheme(t => t === 'light' ? 'dark' : 'light')}
       />
 
       {/* Main Studio Body */}

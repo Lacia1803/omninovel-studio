@@ -1,11 +1,9 @@
 """Bilingual EPUB Export Router."""
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 import io
 
-from services.bilingual_epub import create_bilingual_epub_from_db
-from database import get_db
-from models import ChapterData
+from services.bilingual_epub import create_bilingual_epub_from_db_async
 
 router = APIRouter(tags=["bilingual"])
 
@@ -16,10 +14,8 @@ async def export_bilingual_epub(project_id: str):
     Export project as bilingual EPUB with interleaved original and translated text.
     """
     try:
-        # Use the database path from get_db's context
-        # For now, hardcode to the default
         db_path = "omninovel.db"
-        epub_bytes = create_bilingual_epub_from_db(db_path, project_id)
+        epub_bytes = await create_bilingual_epub_from_db_async(db_path, project_id)
 
         filename = f"bilingual_{project_id}.epub"
 
