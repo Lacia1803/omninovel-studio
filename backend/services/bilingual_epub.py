@@ -7,7 +7,7 @@ import re
 from ebooklib import epub
 from bs4 import BeautifulSoup
 
-from models import ChapterData
+from models import ChapterResponse as ChapterData
 
 
 def sanitize_filename(name: str) -> str:

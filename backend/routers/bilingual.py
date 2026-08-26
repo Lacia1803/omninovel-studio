@@ -5,7 +5,7 @@ import io
 
 from services.bilingual_epub import create_bilingual_epub_from_db
 from database import get_db
-from models import ChapterData
+from models import ChapterResponse as ChapterData
 
 router = APIRouter(tags=["bilingual"])
 
