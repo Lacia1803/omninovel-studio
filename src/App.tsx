@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import confetti from "canvas-confetti";
 import type { Chapter, ViewMode } from "./types/novel";
 import { Navbar } from "./components/Navbar";
@@ -7,9 +7,9 @@ import { DualEditor } from "./components/DualEditor";
 import { ImportModal } from "./components/ImportModal";
 import { GlossaryManager } from "./components/GlossaryManager";
 import { SettingsModal } from "./components/SettingsModal";
-import { BatchTranslator } from "./components/BatchTranslator";
-import { ExportModal } from "./components/ExportModal";
-import { ReaderMode } from "./components/ReaderMode";
+const BatchTranslator = React.lazy(() => import("./components/BatchTranslator").then(m => ({ default: m.BatchTranslator })));
+const ExportModal = React.lazy(() => import("./components/ExportModal").then(m => ({ default: m.ExportModal })));
+const ReaderMode = React.lazy(() => import("./components/ReaderMode").then(m => ({ default: m.ReaderMode })));
 import { convertVietphrase } from "./services/dictionaries/vietphrase";
 import { translateText } from "./services/translators";
 import { useProject } from "./hooks/useProject";
@@ -272,31 +272,33 @@ export function App() {
         onUpdateSettings={(updated) => patchProject({ settings: updated })}
       />
 
-      <BatchTranslator
-        isOpen={isBatchOpen}
-        onClose={() => setIsBatchOpen(false)}
-        chapters={project.chapters}
-        settings={project.settings}
-        onStartBatch={handleStartBatch}
-        isProcessing={isProcessing}
-        progress={batchProgress}
-      />
-
-      <ExportModal
-        isOpen={isExportOpen}
-        onClose={() => setIsExportOpen(false)}
-        project={project}
-      />
-
-      {isReaderOpen && (
-        <ReaderMode
-          isOpen={isReaderOpen}
-          onClose={() => setIsReaderOpen(false)}
+      <Suspense fallback={null}>
+        <BatchTranslator
+          isOpen={isBatchOpen}
+          onClose={() => setIsBatchOpen(false)}
           chapters={project.chapters}
-          currentChapterId={activeChapterId || ""}
-          onSelectChapter={setActiveChapterId}
+          settings={project.settings}
+          onStartBatch={handleStartBatch}
+          isProcessing={isProcessing}
+          progress={batchProgress}
         />
-      )}
+
+        <ExportModal
+          isOpen={isExportOpen}
+          onClose={() => setIsExportOpen(false)}
+          project={project}
+        />
+
+        {isReaderOpen && (
+          <ReaderMode
+            isOpen={isReaderOpen}
+            onClose={() => setIsReaderOpen(false)}
+            chapters={project.chapters}
+            currentChapterId={activeChapterId || ""}
+            onSelectChapter={setActiveChapterId}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }
