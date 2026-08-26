@@ -1,8 +1,8 @@
 # OmniNovel Studio 📖
 
 <p align="right">
-  <a href="README.md">🇬🇧 English</a> · 
-  <strong>🇻🇳 Tiếng Việt</strong>
+  <strong>🇻🇳 Tiếng Việt</strong> · 
+  <a href="README.md">🇬🇧 English</a>
 </p>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
