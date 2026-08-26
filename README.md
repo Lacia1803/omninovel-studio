@@ -1,6 +1,6 @@
 # OmniNovel Studio
 
-> Phòng thu dịch tiểu thuyết dành cho những người đọc không chịu được một bản dịch tồi.
+> Một ứng dụng duy nhất để dịch, chuyển đổi và xuất bản tiểu thuyết — với glossary nhất quán và mười nguồn AI để lựa chọn.
 
 ![React 19](https://img.shields.io/badge/React-19-61dafb?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript)
