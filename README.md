@@ -8,12 +8,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CI](https://github.com/Lacia1803/omninovel-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/Lacia1803/omninovel-studio/actions/workflows/ci.yml)
 
-**An all‑in‑one studio for translating, converting and publishing bilingual novels — with a consistent Glossary system and 10 AI providers.**
+**An all‑in‑one studio for translating, converting and publishing bilingual novels — with a consistent Glossary system and 5 AI providers.**
 
 ## 📖 Overview
 OmniNovel Studio is a **standalone** (All‑in‑one Studio) solution that tackles the pain points of reading and translating web novels / ebooks (Chinese, Japanese, Korean, English):
 
-- **Multi‑source translation**: Seamlessly switch or auto‑fallback between 10 different translation sources.
+- **Multi‑source translation**: Seamlessly switch or auto‑fallback between 5 quality translation providers.
 - **Glossary smart‑prepend**: Lock down character names, locations and cultivation terms before sending to the AI — no more terminology drift between chapters.
 - **Client‑side Vietphrase engine**: Runs entirely in the browser — no tokens, no network, zero latency.
 - **Bilingual EPUB export**: High‑quality EPUB output with original text and translation interleaved.
@@ -58,8 +58,8 @@ subgraph "AI Providers & Services"
     Trans --> OpenAI
     Trans --> Claude
     Trans --> DeepSeek
-    Trans --> Ollama
-    Trans --> FreeProviders[Google / MyMemory]
+    Trans --> Groq
+    Trans --> Vietphrase[Vietphrase Engine]
 end
 ```
 
@@ -103,6 +103,7 @@ uvicorn main:app --reload --port 8000
 
 **Frontend** (separate terminal)
 ```bash
+cd frontend
 npm install
 npm run dev
 ```
@@ -119,8 +120,8 @@ Nginx serves the frontend on port 80 and proxies all `/api/*` requests to the b
 
 ### 3. Desktop (Tauri v2)
 ```bash
-npm install
-npm run tauri:dev
+cd infra/tauri
+cargo tauri dev
 ```
 
 ## 🔑 AI Provider Setup
@@ -150,7 +151,10 @@ npm run tauri:dev
 cd backend && pytest
 
 # Frontend tests
-npm run test
+cd frontend && npm run test
+
+# E2E tests
+cd infra/tests && npx playwright test
 ```
 
 All tests pass (PASS) before every commit.

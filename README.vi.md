@@ -8,7 +8,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CI](https://github.com/Lacia1803/omninovel-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/Lacia1803/omninovel-studio/actions/workflows/ci.yml)
 
-**Một ứng dụng toàn diện giúp **dịch, chuyển đổi và xuất bản** tiểu thuyết song ngữ với hệ thống Glossary nhất quán và tích hợp 10 nhà cung cấp AI.**
+**Một ứng dụng toàn diện giúp **dịch, chuyển đổi và xuất bản** tiểu thuyết song ngữ với hệ thống Glossary nhất quán và tích hợp 5 nhà cung cấp AI.**
 
 ## 📖 Tổng quan
 OmniNovel Studio là giải pháp phần mềm **độc lập** (All‑in‑one Studio) giải quyết triệt để các hạn chế của việc đọc và dịch thuật tiểu thuyết web/ebook (Trung, Nhật, Hàn, Anh):
@@ -58,8 +58,8 @@ subgraph "AI Providers & Services"
     Trans --> OpenAI
     Trans --> Claude
     Trans --> DeepSeek
-    Trans --> Ollama
-    Trans --> FreeProviders[Google / MyMemory]
+    Trans --> Groq
+    Trans --> Vietphrase[Vietphrase Engine]
 end
 ```
 
@@ -103,6 +103,7 @@ uvicorn main:app --reload --port 8000
 
 **Frontend** (trong terminal riêng)
 ```bash
+cd frontend
 npm install
 npm run dev
 ```
@@ -119,8 +120,8 @@ Frontend được Nginx phục vụ trên port 80, mọi request `/api/*` đư�
 
 ### 3. Desktop (Tauri v2)
 ```bash
-npm install
-npm run tauri:dev
+cd infra/tauri
+cargo tauri dev
 ```
 
 ## 🔑 Thiết lập Nhà cung cấp AI
@@ -150,7 +151,10 @@ npm run tauri:dev
 cd backend && pytest
 
 # Frontend tests
-npm run test
+cd frontend && npm run test
+
+# E2E tests
+cd infra/tests && npx playwright test
 ```
 
 Tất cả test đều xanh (PASS) trước mỗi commit.
