@@ -149,7 +149,7 @@ export const api = {
   },
   translate: (data: {
     text: string; source_lang?: string; target_lang?: string;
-    provider?: string; api_key?: string; model?: string;
+    provider?: string; api_key?: string; custom_endpoint?: string; model?: string;
     style_prompt?: string; temperature?: number;
     apply_glossary?: boolean; glossary?: any[];
   }) => request<TranslateResult>('/translate', { method: 'POST', body: JSON.stringify(data) }),
