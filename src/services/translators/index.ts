@@ -21,7 +21,7 @@ export function applyPreGlossary(text: string, glossary: GlossaryItem[] = []): s
   if (!text || glossary.length === 0) return text;
   let result = text;
   const activeItems = glossary.filter(g => g.enabled && g.sourceTerm && g.targetTerm);
-  
+
   // Sắp xếp thuật ngữ dài trước
   activeItems.sort((a, b) => b.sourceTerm.length - a.sourceTerm.length);
 
@@ -83,12 +83,6 @@ export async function translateText(req: TranslateRequest): Promise<TranslateRes
 
   try {
     switch (settings.provider) {
-      case 'free_google':
-        return await translateFreeGoogle(processedText, sourceLang, targetLang);
-      
-      case 'free_mymemory':
-        return await translateFreeMyMemory(processedText, sourceLang, targetLang);
-
       case 'gemini':
         return await translateGemini(processedText, settings, glossary);
 
@@ -101,88 +95,26 @@ export async function translateText(req: TranslateRequest): Promise<TranslateRes
       case 'claude':
         return await translateClaude(processedText, settings, glossary);
 
-      case 'mistral':
-        return await translateMistral(processedText, settings, glossary);
-
-      case 'cohere':
-        return await translateCohere(processedText, settings, glossary);
-
       case 'groq':
         return await translateGroq(processedText, settings, glossary);
 
-      case 'ollama':
-        return await translateOllama(processedText, settings, glossary);
+      case 'vietphrase_only':
+        return { translatedText: processedText, providerUsed: 'Vietphrase Engine' };
 
       default:
-        // Fallback sang Free Google
-        return await translateFreeGoogle(processedText, sourceLang, targetLang);
+        // Fallback sang Gemini (free tier)
+        return await translateGemini(processedText, settings, glossary);
     }
   } catch (error: any) {
     console.warn(`Translation with ${settings.provider} failed:`, error);
-    // Fallback sang Free Google nếu API Key lỗi hoặc bị giới hạn
-    if (settings.provider !== 'free_google') {
-      console.log('Falling back to Free Google Translator...');
-      return await translateFreeGoogle(processedText, sourceLang, targetLang);
+    // Fallback sang Groq (free tier) nếu provider khác lỗi
+    if (settings.provider !== 'groq') {
+      console.log('Falling back to Groq...');
+      settings.provider = 'groq';
+      return await translateGroq(processedText, settings, glossary);
     }
     throw error;
   }
-}
-
-/**
- * Free Google Translate Endpoint (Client-side, Instant, No API Key needed)
- */
-async function translateFreeGoogle(text: string, src: string, tgt: string): Promise<TranslateResponse> {
-  // Chia nhỏ thành các đoạn văn nếu quá dài (Google Free limit ~2000 chars per query)
-  const chunks = splitTextIntoChunks(text, 1800);
-  const translatedChunks: string[] = [];
-
-  for (const chunk of chunks) {
-    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${src === 'auto' ? 'auto' : src}&tl=${tgt}&dt=t&q=${encodeURIComponent(chunk)}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Google Free API Error: ${res.statusText}`);
-    const data = await res.json();
-    
-    // Google returns nested array: [[["translated", "original", ...]], ...]
-    let chunkResult = '';
-    if (data && data[0]) {
-      for (const item of data[0]) {
-        if (item && item[0]) {
-          chunkResult += item[0];
-        }
-      }
-    }
-    translatedChunks.push(chunkResult || chunk);
-  }
-
-  return {
-    translatedText: translatedChunks.join('\n'),
-    providerUsed: 'Google Translate (Free)'
-  };
-}
-
-/**
- * Free MyMemory Translate Endpoint
- */
-async function translateFreeMyMemory(text: string, src: string, tgt: string): Promise<TranslateResponse> {
-  const chunks = splitTextIntoChunks(text, 500);
-  const translatedChunks: string[] = [];
-
-  for (const chunk of chunks) {
-    const langpair = `${src === 'auto' ? 'zh' : src}|${tgt}`;
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(chunk)}&langpair=${langpair}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data && data.responseData) {
-      translatedChunks.push(data.responseData.translatedText);
-    } else {
-      translatedChunks.push(chunk);
-    }
-  }
-
-  return {
-    translatedText: translatedChunks.join('\n'),
-    providerUsed: 'MyMemory (Free)'
-  };
 }
 
 /**
@@ -197,7 +129,7 @@ async function translateGemini(text: string, settings: TranslationSettings, glos
   const systemPrompt = buildNovelSystemPrompt(settings, glossary);
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${settings.apiKey}`;
-  
+
   const payload = {
     contents: [
       {
@@ -318,42 +250,8 @@ async function translateDeepSeek(text: string, settings: TranslationSettings, gl
 }
 
 /**
- * Ollama Local LLM Adapter
+ * Claude 3 Adapter (Anthropic Messages API)
  */
-async function translateOllama(text: string, settings: TranslationSettings, glossary: GlossaryItem[]): Promise<TranslateResponse> {
-  const endpoint = settings.customEndpoint || 'http://localhost:11434/api/generate';
-  const model = settings.model || 'qwen2.5';
-  const systemPrompt = buildNovelSystemPrompt(settings, glossary);
-
-  const res = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: model,
-      system: systemPrompt,
-      prompt: text,
-      stream: false
-    })
-  });
-
-  if (!res.ok) {
-    throw new Error(`Ollama Local API Error: ${res.statusText}`);
-  }
-
-  const data = await res.json();
-  return {
-    translatedText: (data.response || text).trim(),
-    providerUsed: `Ollama (${model})`
-  };
-}
-
-/**
- *******************************************************************************************
- * NEW PROVIDER ADAPTERS
- *******************************************************************************************
- */
-
-/** Claude 3 Adapter (Anthropic Messages API) */
 async function translateClaude(text: string, settings: TranslationSettings, glossary: GlossaryItem[]): Promise<TranslateResponse> {
   if (!settings.apiKey) {
     throw new Error('Vui lòng nhập API Key cho Anthropic Claude trong cài đặt.');
@@ -361,9 +259,9 @@ async function translateClaude(text: string, settings: TranslationSettings, glos
 
   const model = settings.model || 'claude-3-5-sonnet-20240620';
   const systemPrompt = buildNovelSystemPrompt(settings, glossary);
-  
+
   const endpoint = settings.customEndpoint || 'https://api.anthropic.com/v1/messages';
-  
+
   const res = await fetch(endpoint, {
     method: 'POST',
     headers: {
@@ -396,90 +294,9 @@ async function translateClaude(text: string, settings: TranslationSettings, glos
   };
 }
 
-/** Mistral Adapter (OpenAI-compatible) */
-async function translateMistral(text: string, settings: TranslationSettings, glossary: GlossaryItem[]): Promise<TranslateResponse> {
-  if (!settings.apiKey) {
-    throw new Error('Vui lòng nhập API Key cho Mistral AI trong cài đặt.');
-  }
-
-  const endpoint = settings.customEndpoint || 'https://api.mistral.ai/v1/chat/completions';
-  const model = settings.model || 'mistral-large-latest';
-  const systemPrompt = buildNovelSystemPrompt(settings, glossary);
-
-  const res = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${settings.apiKey}`
-    },
-    body: JSON.stringify({
-      model: model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: text }
-      ],
-      temperature: settings.temperature || 0.3
-    })
-  });
-
-  if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.error?.message || `Mistral API Error: ${res.status}`);
-  }
-
-  const data = await res.json();
-  const translatedText = data.choices?.[0]?.message?.content || text;
-  const tokenCount = data.usage?.total_tokens;
-
-  return {
-    translatedText: translatedText.trim(),
-    providerUsed: `Mistral (${model})`,
-    tokenCount: tokenCount
-  };
-}
-
-/** Cohere Adapter (Command API) */
-async function translateCohere(text: string, settings: TranslationSettings, glossary: GlossaryItem[]): Promise<TranslateResponse> {
-  if (!settings.apiKey) {
-    throw new Error('Vui lòng nhập API Key cho Cohere trong cài đặt.');
-  }
-
-  const model = settings.model || 'command-r-plus';
-  const systemPrompt = buildNovelSystemPrompt(settings, glossary);
-  
-  const endpoint = settings.customEndpoint || 'https://api.cohere.ai/v1/chat';
-  
-  const res = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${settings.apiKey}`
-    },
-    body: JSON.stringify({
-      model: model,
-      message: text,
-      preamble: systemPrompt,
-      temperature: settings.temperature || 0.3
-    })
-  });
-
-  if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.error?.message || `Cohere API Error: ${res.status}`);
-  }
-
-  const data = await res.json();
-  const translatedText = data.text || text;
-  const tokenCount = data.meta?.billed_units?.input_tokens + data.meta?.billed_units?.output_tokens;
-
-  return {
-    translatedText: translatedText.trim(),
-    providerUsed: `Cohere (${model})`,
-    tokenCount: tokenCount
-  };
-}
-
-/** Groq Adapter (OpenAI-compatible, Ultra-fast) */
+/**
+ * Groq Adapter (OpenAI-compatible, Ultra-fast)
+ */
 async function translateGroq(text: string, settings: TranslationSettings, glossary: GlossaryItem[]): Promise<TranslateResponse> {
   if (!settings.apiKey) {
     throw new Error('Vui lòng nhập API Key cho Groq trong cài đặt.');

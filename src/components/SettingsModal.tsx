@@ -10,16 +10,12 @@ interface SettingsModalProps {
 }
 
 const PROVIDERS: { value: TranslationProvider; label: string; tag: string; needsKey: boolean; color: string }[] = [
-  { value: 'free_google',  label: 'Google Translate', tag: 'Free · Tức thì', needsKey: false, color: '#4285f4' },
-  { value: 'free_mymemory', label: 'MyMemory Translate', tag: 'Free', needsKey: false, color: '#34a853' },
-  { value: 'gemini',       label: 'Google Gemini AI',  tag: 'Khuyên dùng · Nhanh', needsKey: true,  color: '#8b5cf6' },
-  { value: 'openai',       label: 'OpenAI GPT-4o',     tag: 'Chất lượng cao', needsKey: true,  color: '#10a37f' },
-  { value: 'claude',       label: 'Anthropic Claude',  tag: 'Mượt mà · Chính xác', needsKey: true,  color: '#d97706' },
-  { value: 'mistral',      label: 'Mistral AI',        tag: 'Nhanh · Châu Âu', needsKey: true,  color: '#ff6b35' },
-  { value: 'deepseek',     label: 'DeepSeek',          tag: 'Tốt cho tiểu thuyết', needsKey: true,  color: '#1a6bff' },
-  { value: 'cohere',       label: 'Cohere Command',    tag: 'RAG · Multi-lingual', needsKey: true,  color: '#39d98a' },
-  { value: 'groq',         label: 'Groq (Ultra-fast)',  tag: 'Tốc độ ánh sáng', needsKey: true,  color: '#f97316' },
-  { value: 'ollama',       label: 'Ollama Local LLM',  tag: 'Offline · Riêng tư', needsKey: false, color: '#f59e0b' },
+  { value: 'gemini',            label: 'Google Gemini AI',   tag: 'Free tier · Nhanh',       needsKey: true,  color: '#8b5cf6' },
+  { value: 'claude',            label: 'Anthropic Claude',   tag: 'Chất lượng tốt nhất',     needsKey: true,  color: '#d97706' },
+  { value: 'openai',            label: 'OpenAI GPT-4o',      tag: 'Chất lượng cao',          needsKey: true,  color: '#10a37f' },
+  { value: 'deepseek',          label: 'DeepSeek',           tag: 'Rẻ · Tốt cho tiểu thuyết',needsKey: true,  color: '#1a6bff' },
+  { value: 'groq',              label: 'Groq (Ultra-fast)',  tag: 'Free tier · Siêu nhanh',  needsKey: false, color: '#f97316' },
+  { value: 'vietphrase_only',   label: 'Vietphrase Engine',  tag: 'Offline · Client-side',   needsKey: false, color: '#22c55e' },
 ];
 
 const MODELS: Record<string, { value: string; label: string }[]> = {
@@ -36,18 +32,9 @@ const MODELS: Record<string, { value: string; label: string }[]> = {
     { value: 'claude-3-5-sonnet-20240620', label: 'Claude 3.5 Sonnet (Tốt nhất)' },
     { value: 'claude-3-haiku-20240307',    label: 'Claude 3 Haiku (Nhanh, Rẻ)' },
   ],
-  mistral: [
-    { value: 'mistral-large-latest', label: 'Mistral Large (Mạnh nhất)' },
-    { value: 'mistral-medium-latest', label: 'Mistral Medium' },
-    { value: 'mistral-small-latest',  label: 'Mistral Small (Rẻ)' },
-  ],
   deepseek:[
     { value: 'deepseek-chat',     label: 'deepseek-chat (DeepSeek V3)' },
     { value: 'deepseek-reasoner', label: 'deepseek-reasoner (DeepSeek R1)' },
-  ],
-  cohere:  [
-    { value: 'command-r-plus', label: 'Command R+ (Mạnh nhất)' },
-    { value: 'command-r',      label: 'Command R (Nhanh)' },
   ],
   groq:    [
     { value: 'llama3-70b-8192',  label: 'LLaMA 3 70B (Chất lượng cao)' },
@@ -89,7 +76,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
         <div className="modal-body">
           <div className="notice notice-success">
             <ShieldCheck size={14} className="notice-icon" strokeWidth={2} />
-            <span>Mặc định dùng <strong>Google Translate Free</strong> — không cần API key, dịch ngay lập tức. Thêm API key để dịch mượt hơn bằng AI.</span>
+            <span>Mặc định dùng <strong>Gemini (Free tier)</strong> — cần có API key miễn phí từ Google AI Studio. Hoặc chọn Groq/Vietphrase không cần API key.</span>
           </div>
 
           <div className="settings-section">
@@ -156,11 +143,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
                 value={settings.customEndpoint || ''}
                 onChange={e => onUpdateSettings({ ...settings, customEndpoint: e.target.value })}
                 placeholder={
-                  settings.provider === 'ollama' ? 'http://localhost:11434/api/generate' :
                   settings.provider === 'claude' ? 'https://api.anthropic.com/v1/messages' :
                   settings.provider === 'groq' ? 'https://api.groq.com/openai/v1/chat/completions' :
-                  settings.provider === 'mistral' ? 'https://api.mistral.ai/v1/chat/completions' :
-                  settings.provider === 'cohere' ? 'https://api.cohere.ai/v1/chat' :
                   'Để trống sẽ dùng endpoint mặc định'
                 }
               />

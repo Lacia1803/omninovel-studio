@@ -122,20 +122,15 @@ npm run tauri:dev
 ```
 
 ## 🔑 Thiết lập Nhà cung cấp AI
-| Nhà cung cấp | Nhận API Key | Chi phí |
-|-------------|--------------|---------|
-| **Google Translate** | Không cần | Miễn phí |
-| **MyMemory** | Không cần | Miễn phí |
-| **Ollama** | Cài đặt local | Miễn phí |
-| **Gemini** | [Google AI Studio](https://aistudio.google.com/apikey?authuser=1) | Free tier |
-| **OpenAI** | [OpenAI API](https://platform.openai.com/api-keys) | Pay‑per‑use |
-| **Claude** | [Anthropic Console](https://console.anthropic.com/api-keys) | Pay‑per‑use |
-| **Mistral** | [Console Mistral](https://console.mistral.ai/api-keys) | Free credits |
-| **DeepSeek** | [DeepSeek Platform](https://platform.deepseek.com/api-keys) | Rất rẻ |
-| **Cohere** | [Cohere Dashboard](https://dashboard.cohere.com/api-keys) | Free tier |
-| **Groq** | [Groq Console](https://console.groq.com/keys) | Free tier |
+| Nhà cung cấp | Phù hợp nhất | Nhận API Key | Chi phí |
+|-------------|-------------|--------------|---------|
+| **Claude (Anthropic)** | Dịch văn học/sáng tạo, văn phong tinh tế | [Anthropic Console](https://console.anthropic.com/api-keys) | Pay‑per‑use |
+| **OpenAI (GPT‑4o / 4o‑mini)** | Dịch tiểu thuyết chất lượng cao | [OpenAI API](https://platform.openai.com/api-keys) | Pay‑per‑use |
+| **Gemini** | Free tier, chất lượng tốt | [Google AI Studio](https://aistudio.google.com/apikey?authuser=1) | Free tier |
+| **DeepSeek** | Hiệu quả chi phí, đa ngôn ngữ mạnh | [DeepSeek Platform](https://platform.deepseek.com/api-keys) | Rất rẻ |
+| **Groq** | Realtime nhanh, free tier | [Groq Console](https://console.groq.com/keys) | Free tier |
 
-Bạn có thể bắt đầu ngay mà không cần API key – hai dịch vụ miễn phí (Google Translate & MyMemory) đáp ứng hầu hết nhu cầu.
+> **Mẹo:** Bắt đầu với **Gemini** (free tier) hoặc **Groq** (free tier) cho dịch miễn phí. Để có chất lượng văn học tốt nhất, dùng **Claude** hoặc **GPT‑4o**. **DeepSeek** cho hiệu suất/giá tốt nhất cho khối lượng lớn.
 
 ## ⌨️ Phím tắt mặc định
 | Phím | Hành động |

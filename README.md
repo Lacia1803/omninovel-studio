@@ -122,20 +122,15 @@ npm run tauri:dev
 ```
 
 ## 🔑 AI Provider Setup
-| Provider | API Key | Cost |
-|----------|---------|------|
-| **Google Translate** | Not required | Free |
-| **MyMemory** | Not required | Free |
-| **Ollama** | Install locally | Free |
-| **Gemini** | [Google AI Studio](https://aistudio.google.com/apikey?authuser=1) | Free tier |
-| **OpenAI** | [OpenAI API](https://platform.openai.com/api-keys) | Pay‑per‑use |
-| **Claude** | [Anthropic Console](https://console.anthropic.com/api-keys) | Pay‑per‑use |
-| **Mistral** | [Mistral Console](https://console.mistral.ai/api-keys) | Free credits |
-| **DeepSeek** | [DeepSeek Platform](https://platform.deepseek.com/api-keys) | Very cheap |
-| **Cohere** | [Cohere Dashboard](https://dashboard.cohere.com/api-keys) | Free tier |
-| **Groq** | [Groq Console](https://console.groq.com/keys) | Free tier |
+| Provider | Best For | API Key | Cost |
+|----------|----------|---------|------|
+| **Claude (Anthropic)** | Literary/creative translation, nuanced prose | [Anthropic Console](https://console.anthropic.com/api-keys) | Pay‑per‑use |
+| **OpenAI (GPT‑4o / 4o‑mini)** | General high‑quality novel translation | [OpenAI API](https://platform.openai.com/api-keys) | Pay‑per‑use |
+| **Gemini** | Free tier, good quality | [Google AI Studio](https://aistudio.google.com/apikey?authuser=1) | Free tier |
+| **DeepSeek** | Cost‑effective, strong multilingual | [DeepSeek Platform](https://platform.deepseek.com/api-keys) | Very cheap |
+| **Groq** | Ultra‑fast inference, free tier | [Groq Console](https://console.groq.com/keys) | Free tier |
 
-You can start using the app right away without an API key — the two free services (Google Translate & MyMemory) cover most needs.
+> **Tip:** Start with **Gemini** (free tier) or **Groq** (free tier) for zero‑cost translation. For best literary quality, use **Claude** or **GPT‑4o**. **DeepSeek** offers the best price/performance for volume work.
 
 ## ⌨️ Default Keyboard Shortcuts
 | Shortcut | Action |

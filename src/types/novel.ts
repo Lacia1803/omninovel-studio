@@ -26,17 +26,12 @@ export interface GlossaryItem {
   enabled: boolean;
 }
 
-export type TranslationProvider = 
-  | 'free_google' 
-  | 'free_mymemory' 
-  | 'gemini' 
-  | 'openai' 
-  | 'deepseek' 
-  | 'claude' 
-  | 'mistral'
-  | 'cohere'
+export type TranslationProvider =
+  | 'gemini'
+  | 'openai'
+  | 'deepseek'
+  | 'claude'
   | 'groq'
-  | 'ollama'
   | 'vietphrase_only';
 
 export interface TranslationSettings {

@@ -3,7 +3,7 @@ import { api } from '../services/api';
 import type { NovelProject, TranslationSettings } from '../types/novel';
 
 const DEFAULT_SETTINGS: TranslationSettings = {
-  provider: 'free_google',
+  provider: 'gemini',
   apiKey: '',
   model: 'gemini-2.0-flash',
   stylePrompt: 'literary',

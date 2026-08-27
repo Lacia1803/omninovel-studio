@@ -6,8 +6,8 @@ const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
 const baseSettings: TranslationSettings = {
-  provider: 'free_google',
-  apiKey: '',
+  provider: 'claude',
+  apiKey: 'test-key',
   model: '',
   stylePrompt: 'literary',
   temperature: 0.7,
@@ -68,43 +68,32 @@ describe('translateText', () => {
     expect(result.translatedText).toBe('');
   });
 
-  it('dispatches to free_google provider', async () => {
+  it('dispatches to claude provider', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => [[['Xin chào', '你好', null, null, 3]]],
+      json: async () => ({
+        content: [{ text: 'Xin chào' }],
+        usage: { input_tokens: 5, output_tokens: 3 }
+      }),
     });
 
     const result = await translateText({
       text: '你好', sourceLang: 'zh', targetLang: 'vi',
-      settings: { ...baseSettings, provider: 'free_google' },
+      settings: { ...baseSettings, provider: 'claude' },
       glossary: [],
     });
 
     expect(result.translatedText).toBe('Xin chào');
+    expect(result.providerUsed).toContain('Claude');
   });
 
-  it('dispatches to free_mymemory provider', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ responseData: { translatedText: 'Hello' } }),
-    });
-
-    const result = await translateText({
-      text: 'Xin chào', sourceLang: 'vi', targetLang: 'en',
-      settings: { ...baseSettings, provider: 'free_mymemory' },
-      glossary: [],
-    });
-
-    expect(result.translatedText).toBe('Hello');
-  });
-
-  it('free_google throws on API error', async () => {
+  it('claude throws on API error', async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 429 });
 
     await expect(
       translateText({
         text: 'test', sourceLang: 'zh', targetLang: 'vi',
-        settings: { ...baseSettings, provider: 'free_google' },
+        settings: { ...baseSettings, provider: 'claude' },
         glossary: [],
       })
     ).rejects.toThrow();
@@ -113,7 +102,10 @@ describe('translateText', () => {
   it('applies glossary before translation when applyGlossary is true', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ data: { translations: [{ translatedText: 'translated' }] } }),
+      json: async () => ({
+        content: [{ text: 'translated' }],
+        usage: { input_tokens: 5, output_tokens: 3 }
+      }),
     });
 
     const glossary: GlossaryItem[] = [
@@ -122,7 +114,7 @@ describe('translateText', () => {
 
     await translateText({
       text: 'Shrek is here', sourceLang: 'zh', targetLang: 'vi',
-      settings: { ...baseSettings, provider: 'free_google', applyGlossary: true },
+      settings: { ...baseSettings, provider: 'claude', applyGlossary: true },
       glossary,
     });
 
