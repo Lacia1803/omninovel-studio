@@ -168,6 +168,34 @@ npm install
 npm run tauri:dev
 ```
 
+### 4. Dev launcher (one command, both services)
+
+A quick-start script is bundled — it auto-creates the `venv`, runs `npm install` if needed, then opens two terminal windows:
+
+**Windows (PowerShell)**
+```powershell
+.\dev.ps1
+```
+
+**macOS / Linux (bash)**
+```bash
+chmod +x dev.sh stop.sh
+./dev.sh
+# Stop with: ./stop.sh
+```
+
+The script will:
+- Create `backend/venv` if missing + install `requirements.txt`
+- Run `npm install` if `node_modules` is missing
+- Set `JWT_SECRET=dev-secret-change-me` if not already set
+- Warn if ports `8000` / `5173` are already in use
+
+After it starts:
+- Frontend → `http://localhost:5173`
+- Backend → `http://localhost:8000` (Swagger UI: `/docs`)
+
+On bash, logs are written to `.logs/backend.log` and `.logs/frontend.log`.
+
 ## 🔑 AI Provider Setup
 
 | Provider | API Key | Cost |
