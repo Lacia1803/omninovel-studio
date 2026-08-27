@@ -8,10 +8,20 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 import bcrypt
+from loguru import logger
 from pydantic import BaseModel
 
 # --- Configuration ---
-JWT_SECRET = os.getenv("JWT_SECRET") or secrets.token_urlsafe(48)
+_env_secret = os.getenv("JWT_SECRET")
+if _env_secret:
+    JWT_SECRET = _env_secret
+else:
+    JWT_SECRET = secrets.token_urlsafe(48)
+    logger.warning(
+        "JWT_SECRET not set — using ephemeral random secret. "
+        "Tokens will NOT survive server restarts. "
+        "Set JWT_SECRET env var in production."
+    )
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_HOURS = int(os.getenv("JWT_EXPIRE_HOURS", "24"))
 
@@ -83,11 +93,10 @@ async def get_current_user(
 
 
 async def _load_user(user_id: str) -> Optional[UserPublic]:
-    import aiosqlite
-    from database import DB_PATH
+    from database import get_db
 
-    async with aiosqlite.connect(str(DB_PATH)) as db:
-        db.row_factory = aiosqlite.Row
+    db = await get_db()
+    try:
         async with db.execute(
             "SELECT id, email, username FROM users WHERE id = ?", (user_id,)
         ) as cur:
@@ -95,3 +104,5 @@ async def _load_user(user_id: str) -> Optional[UserPublic]:
             if row is None:
                 return None
             return UserPublic(id=row["id"], email=row["email"], username=row["username"])
+    finally:
+        await db.close()

@@ -1,12 +1,13 @@
 """Bilingual EPUB Export Router."""
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 import io
 
 from database import DB_PATH
 from services.bilingual_epub import create_bilingual_epub_from_db_async
+from security import get_current_user
 
-router = APIRouter(tags=["bilingual"])
+router = APIRouter(tags=["bilingual"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/projects/{project_id}/export/bilingual-epub")

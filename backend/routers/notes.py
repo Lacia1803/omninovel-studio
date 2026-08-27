@@ -1,10 +1,12 @@
 """Chapter Notes & Comments Router."""
 import uuid
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 
-router = APIRouter(tags=["notes"])
+from security import get_current_user
+
+router = APIRouter(tags=["notes"], dependencies=[Depends(get_current_user)])
 
 
 class NoteCreate(BaseModel):

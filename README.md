@@ -25,6 +25,10 @@ OmniNovel Studio is a **standalone** (All‑in‑one Studio) solution that tackl
 - **3‑column Pipeline view**: Side‑by‑side comparison of *Original*, *Vietphrase* and *AI Translation*. Edit or re‑translate any segment instantly.
 - **Free Edge TTS integration**: 8 Neural voices from Microsoft Edge (Vietnamese, English, Japanese, Korean, Chinese) with adjustable speed and inline audio streaming.
 - **Format & export**: TXT, EPUB, PDF, DOCX input; bilingual EPUB, Markdown and JSON output.
+- **Backend Translation Proxy**: Paid AI providers (OpenAI, Claude, Gemini, etc.) route through the backend so API keys never leave the server — only free providers run client-side.
+- **Enhanced Security**: JWT secret via environment variable, CORS hardened, authentication enforced on all CRUD endpoints.
+- **DB Migration Support**: Schema versioning with `schema_version` table for future migrations.
+- **Full Auth Protection**: Every endpoint now enforces JWT authentication — no more open projects/chapters/glossary endpoints.
 
 ## 🛠️ Tech Stack
 | Layer | Technologies / Libraries |

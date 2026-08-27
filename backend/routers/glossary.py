@@ -4,8 +4,9 @@ import aiosqlite
 
 from database import get_db
 from models import CreateGlossaryItem, UpdateGlossaryItem, GlossaryItemResponse
+from security import get_current_user
 
-router = APIRouter(tags=["glossary"])
+router = APIRouter(tags=["glossary"], dependencies=[Depends(get_current_user)])
 
 
 @router.post("/projects/{project_id}/glossary", response_model=GlossaryItemResponse)

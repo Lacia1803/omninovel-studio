@@ -71,7 +71,7 @@ export function useProject() {
     return () => { cancelled = true; };
   }, []);
 
-  // Auto-sync to localStorage
+  // Auto-sync to localStorage — API keys remain here (browser-only) but are stripped before backend sync
   useEffect(() => {
     localStorage.setItem('omni_novel_project', JSON.stringify(project));
   }, [project]);
