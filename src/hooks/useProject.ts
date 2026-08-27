@@ -71,7 +71,7 @@ export function useProject() {
     return () => { cancelled = true; };
   }, []);
 
-  // Auto-sync to localStorage
+  // Auto-sync to localStorage (with API keys stripped for server safety)
   useEffect(() => {
     localStorage.setItem('omni_novel_project', JSON.stringify(project));
   }, [project]);

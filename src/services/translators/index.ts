@@ -1,4 +1,5 @@
 import type { GlossaryItem, TranslationSettings } from '../../types/novel';
+import { api } from '../api';
 
 export interface TranslateRequest {
   text: string;
@@ -81,50 +82,39 @@ export async function translateText(req: TranslateRequest): Promise<TranslateRes
   // 1. Áp dụng Glossary trước nếu bật
   const processedText = settings.applyGlossary ? applyPreGlossary(text, glossary) : text;
 
+  // Free providers run entirely client-side without API key
+  if (settings.provider === 'free_google') {
+    return await translateFreeGoogle(processedText, sourceLang, targetLang);
+  }
+  if (settings.provider === 'free_mymemory') {
+    return await translateFreeMyMemory(processedText, sourceLang, targetLang);
+  }
+
+  // Paid / AI providers: route through backend API proxy to keep API keys secure
   try {
-    switch (settings.provider) {
-      case 'free_google':
-        return await translateFreeGoogle(processedText, sourceLang, targetLang);
-      
-      case 'free_mymemory':
-        return await translateFreeMyMemory(processedText, sourceLang, targetLang);
+    const res = await api.translate({
+      text: processedText,
+      source_lang: sourceLang,
+      target_lang: targetLang,
+      provider: settings.provider,
+      api_key: settings.apiKey,
+      custom_endpoint: settings.customEndpoint,
+      model: settings.model,
+      style_prompt: settings.stylePrompt,
+      temperature: settings.temperature,
+      apply_glossary: settings.applyGlossary,
+      glossary: glossary.map(g => ({ source_term: g.sourceTerm, target_term: g.targetTerm, enabled: g.enabled })),
+    });
 
-      case 'gemini':
-        return await translateGemini(processedText, settings, glossary);
-
-      case 'openai':
-        return await translateOpenAI(processedText, settings, glossary);
-
-      case 'deepseek':
-        return await translateDeepSeek(processedText, settings, glossary);
-
-      case 'claude':
-        return await translateClaude(processedText, settings, glossary);
-
-      case 'mistral':
-        return await translateMistral(processedText, settings, glossary);
-
-      case 'cohere':
-        return await translateCohere(processedText, settings, glossary);
-
-      case 'groq':
-        return await translateGroq(processedText, settings, glossary);
-
-      case 'ollama':
-        return await translateOllama(processedText, settings, glossary);
-
-      default:
-        // Fallback sang Free Google
-        return await translateFreeGoogle(processedText, sourceLang, targetLang);
-    }
+    return {
+      translatedText: res.translated_text,
+      providerUsed: res.provider_used,
+      tokenCount: res.token_count,
+    };
   } catch (error: any) {
-    console.warn(`Translation with ${settings.provider} failed:`, error);
-    // Fallback sang Free Google nếu API Key lỗi hoặc bị giới hạn
-    if (settings.provider !== 'free_google') {
-      console.log('Falling back to Free Google Translator...');
-      return await translateFreeGoogle(processedText, sourceLang, targetLang);
-    }
-    throw error;
+    console.warn(`Translation with ${settings.provider} via backend failed:`, error);
+    console.log('Falling back to Free Google Translator...');
+    return await translateFreeGoogle(processedText, sourceLang, targetLang);
   }
 }
 

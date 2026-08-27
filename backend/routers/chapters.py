@@ -4,8 +4,9 @@ import aiosqlite
 
 from database import get_db
 from models import CreateChapter, UpdateChapter, ChapterResponse
+from security import get_current_user
 
-router = APIRouter(tags=["chapters"])
+router = APIRouter(tags=["chapters"], dependencies=[Depends(get_current_user)])
 
 
 @router.post("/projects/{project_id}/chapters", response_model=ChapterResponse)

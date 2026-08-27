@@ -5,8 +5,9 @@ import aiosqlite
 
 from database import get_db
 from models import CreateProject, UpdateProject, ProjectSummary, ProjectResponse, FullProject
+from security import get_current_user
 
-router = APIRouter(tags=["projects"])
+router = APIRouter(tags=["projects"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/projects", response_model=list[ProjectSummary])

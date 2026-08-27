@@ -189,6 +189,68 @@ class OllamaTranslator(TranslatorProvider):
             )
 
 
+class ClaudeTranslator(TranslatorProvider):
+    async def translate(self, text, source_lang, target_lang, settings, glossary):
+        api_key = settings.get("api_key", "")
+        if not api_key:
+            raise ValueError("API Key required for Claude")
+        model = settings.get("model") or "claude-3-5-sonnet-20240620"
+        system_prompt = build_novel_system_prompt(settings, glossary)
+        endpoint = settings.get("custom_endpoint") or "https://api.anthropic.com/v1/messages"
+
+        async with httpx.AsyncClient(timeout=60) as client:
+            resp = await client.post(
+                endpoint,
+                headers={
+                    "Content-Type": "application/json",
+                    "x-api-key": api_key,
+                    "anthropic-version": "2023-06-01",
+                },
+                json={
+                    "model": model,
+                    "max_tokens": 4000,
+                    "system": system_prompt,
+                    "messages": [{"role": "user", "content": text}],
+                    "temperature": settings.get("temperature", 0.3),
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            translated = data["content"][0]["text"].strip()
+            tokens = (data.get("usage", {}).get("input_tokens", 0) or 0) + (
+                data.get("usage", {}).get("output_tokens", 0) or 0
+            )
+            return TranslateResult(translated_text=translated, provider_used=f"Claude ({model})", token_count=tokens or None)
+
+
+class CohereTranslator(TranslatorProvider):
+    async def translate(self, text, source_lang, target_lang, settings, glossary):
+        api_key = settings.get("api_key", "")
+        if not api_key:
+            raise ValueError("API Key required for Cohere")
+        model = settings.get("model") or "command-r-plus"
+        system_prompt = build_novel_system_prompt(settings, glossary)
+        endpoint = settings.get("custom_endpoint") or "https://api.cohere.ai/v1/chat"
+
+        async with httpx.AsyncClient(timeout=60) as client:
+            resp = await client.post(
+                endpoint,
+                headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"},
+                json={
+                    "model": model,
+                    "message": text,
+                    "preamble": system_prompt,
+                    "temperature": settings.get("temperature", 0.3),
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            translated = data.get("text", text).strip()
+            billed = data.get("meta", {}).get("billed_units", {})
+            tokens = (billed.get("input_tokens", 0) or 0) + (billed.get("output_tokens", 0) or 0)
+            return TranslateResult(translated_text=translated, provider_used=f"Cohere ({model})", token_count=tokens or None)
+
+
 PROVIDERS: dict[str, TranslatorProvider] = {
     "free_google": GoogleFreeTranslator(),
     "free_mymemory": MyMemoryTranslator(),
@@ -204,6 +266,18 @@ PROVIDERS: dict[str, TranslatorProvider] = {
         provider_name="DeepSeek",
     ),
     "ollama": OllamaTranslator(),
+    "claude": ClaudeTranslator(),
+    "mistral": OpenAICompatibleTranslator(
+        default_endpoint="https://api.mistral.ai/v1/chat/completions",
+        default_model="mistral-large-latest",
+        provider_name="Mistral",
+    ),
+    "cohere": CohereTranslator(),
+    "groq": OpenAICompatibleTranslator(
+        default_endpoint="https://api.groq.com/openai/v1/chat/completions",
+        default_model="llama3-8b-8192",
+        provider_name="Groq",
+    ),
 }
 
 

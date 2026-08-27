@@ -1,8 +1,10 @@
 """Markdown Export Router."""
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import PlainTextResponse
 
-router = APIRouter(tags=["markdown"])
+from security import get_current_user
+
+router = APIRouter(tags=["markdown"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/projects/{project_id}/export/markdown")

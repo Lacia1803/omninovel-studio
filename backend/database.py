@@ -1,7 +1,10 @@
 import aiosqlite
 from pathlib import Path
+from loguru import logger
 
 DB_PATH = Path(__file__).parent / "omninovel.db"
+
+CURRENT_SCHEMA_VERSION = 2
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS projects (
@@ -60,6 +63,10 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+CREATE TABLE IF NOT EXISTS schema_version (
+    version INTEGER PRIMARY KEY
+);
 """
 
 
@@ -75,5 +82,22 @@ async def init_db():
     try:
         await db.executescript(SCHEMA_SQL)
         await db.commit()
+
+        cursor = await db.execute("SELECT version FROM schema_version LIMIT 1")
+        row = await cursor.fetchone()
+        if row is None:
+            await db.execute("INSERT INTO schema_version (version) VALUES (?)", (CURRENT_SCHEMA_VERSION,))
+            await db.commit()
+            logger.info("Database initialized, schema version {}", CURRENT_SCHEMA_VERSION)
+        elif row[0] < CURRENT_SCHEMA_VERSION:
+            logger.warning(
+                "Database schema version {} is older than expected {}. "
+                "Manual migration may be needed for production.",
+                row[0], CURRENT_SCHEMA_VERSION,
+            )
+            await db.execute("UPDATE schema_version SET version = ?", (CURRENT_SCHEMA_VERSION,))
+            await db.commit()
+        else:
+            logger.debug("Database schema version {} up to date", row[0])
     finally:
         await db.close()
