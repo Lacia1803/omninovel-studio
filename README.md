@@ -91,13 +91,27 @@ omninovel-studio/
 ### 1. Local Development
 **Backend**
 ```bash
+# Move into backend folder (requirements are here)
 cd backend
+
+# Create virtual environment
 python -m venv venv
+# Activate it
 # Windows: .\venv\Scripts\activate
 # macOS/Linux: source venv/bin/activate
+
+# Install Python dependencies
 pip install -r requirements.txt
+
+# (Optional) Set environment variables, e.g.:
+# export JWT_SECRET="your-secret"
+# export JWT_EXPIRE_HOURS=24
+
+# Start the FastAPI server
 uvicorn main:app --reload --port 8000
 ```
+
+*If you are running from the repository root, remember to `cd backend` before the commands above.*
 
 **Frontend** (separate terminal)
 ```bash

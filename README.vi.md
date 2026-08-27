@@ -91,13 +91,27 @@ omninovel-studio/
 ### 1. Phát triển cục bộ
 **Backend**
 ```bash
+# Di chuyển vào thư mục backend (có requirements.txt)
 cd backend
+
+# Tạo môi trường ảo
 python -m venv venv
+# Kích hoạt môi trường
 # Windows: .\venv\Scripts\activate
 # macOS/Linux: source venv/bin/activate
+
+# Cài đặt các phụ thuộc Python
 pip install -r requirements.txt
+
+# (Tùy chọn) Đặt biến môi trường, ví dụ:
+# export JWT_SECRET="secret-cua-ban"
+# export JWT_EXPIRE_HOURS=24
+
+# Khởi chạy server FastAPI
 uvicorn main:app --reload --port 8000
 ```
+
+*Nếu chạy lệnh từ thư mục gốc của repo, đừng quên `cd backend` trước khi thực hiện các lệnh trên.*
 
 **Frontend** (trong terminal riêng)
 ```bash
