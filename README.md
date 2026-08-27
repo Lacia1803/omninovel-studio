@@ -16,8 +16,8 @@ OmniNovel Studio là giải pháp phần mềm **độc lập** (All‑in‑one 
 
 - **Multi‑source translation**: Chuyển đổi hoặc fallback tự động giữa 10 nguồn dịch khác nhau.
 - **Glossary smart‑prepend**: Đồng bộ tên nhân vật, địa danh, thuật ngữ tu tiên trước khi gửi tới AI, tránh bất nhất từ ngữ.
-- **Client‑side Vietphrase engine**: Chạy hoàn toàn trong trình duyệt, không tốn token, không cần mạng.
-- **EPUB song ngữ chất lượng cao**: Xuất bản định dạng EPUB với bản gốc và bản dịch xen kẽ.
+- **Client‑side Vietphrase engine**: Chạy hoàn toàn trong trình duyệt, không tốn token, không cần mạng (từ điển Hán Việt + Vietphrase tiên hiệp/kiếm hiệp/ngôn tình tích hợp sẵn).
+- **Edge TTS miễn phí**: Backend FastAPI dùng `edge‑tts` (8 giọng Neural: Việt Nam, Anh, Nhật, Hàn, Trung) để sinh file MP3; Reader Mode dùng thêm Web Speech API cho phát nhanh trong trình duyệt.
 
 ## ✨ Tính năng nổi bật
 
@@ -25,19 +25,24 @@ OmniNovel Studio là giải pháp phần mềm **độc lập** (All‑in‑one 
 - **Auto‑fallback**: Tự động chuyển sang nhà cung cấp dự phòng khi gặp rate‑limit hoặc ngắt kết nối mà không mất tiến trình.
 - **4 phong cách dịch**: Văn học, Tiên hiệp, Sát nghĩa, Tùy chỉnh.
 - **Pipeline 3 cột**: So sánh bản gốc, Vietphrase, và bản dịch AI; biện tập, chỉnh sửa ngay lập tức.
-- **Edge TTS miễn phí**: 8 giọng đọc Neural từ Microsoft Edge (Việt Nam, Anh, Nhật, Hàn, Trung) với tùy chỉnh tốc độ và stream audio.
-- **Định dạng & xuất bản**: Hỗ trợ TXT, EPUB, PDF, DOCX; xuất EPUB song ngữ, Markdown, JSON.
+- **Đa dạng input**: TXT, EPUB, PDF, DOCX, JSON/`.novelproject`, dán văn bản thô hoặc HTML.
+- **Đa dạng output**:
+  - **Frontend (client-side)**: EPUB (đơn ngữ), PDF, DOCX, TXT, Markdown, `.novelproject` (JSON backup).
+  - **Backend (qua API)**: EPUB song ngữ (`/bilingual`), Markdown server-side (`/markdown`), TTS MP3 (`/tts`).
+- **Edge TTS miễn phí**: 8 giọng Neural từ Microsoft Edge (Việt Nam, Anh, Nhật, Hàn, Trung) sinh file MP3 qua backend; tuỳ chỉnh tốc độ.
+- **Quản lý Glossary & Rules**: Thêm/sửa/xoá thuật ngữ, bật/tắt theo dự án, rule service cho phép biến đổi văn bản trước/sau dịch.
 
 ## 🛠️ Tech Stack
 
 | Tầng | Công nghệ / Thư viện |
 |------|----------------------|
-| **Frontend** | React 19, Vite, TypeScript (strict), custom CSS |
-| **Backend** | Python 3.11, FastAPI, `aiosqlite` |
+| **Frontend** | React 19, Vite, TypeScript (strict), custom CSS, `pdfjs-dist`, `docx`, `jszip`, `jspdf` |
+| **Backend** | Python 3.11, FastAPI, `aiosqlite`, `httpx`, `edge-tts` |
 | **Database** | SQLite (async) |
-| **Parsers** | `chardet`, `PyMuPDF`, `python-docx`, `ebooklib` |
-| **Audio & TTS** | Edge TTS client integration |
-| **Security & Ops** | JWT auth, `bcrypt`, `slowapi` (rate limit), `loguru` (structured logging) |
+| **Parsers (FE)** | `pdfjs-dist`, `jszip` (EPUB/DOCX), auto-detect UTF-8/GBK |
+| **Parsers (BE)** | `chardet`, `PyMuPDF`, `python-docx`, `ebooklib` |
+| **Audio & TTS** | Edge TTS (`edge-tts` 6.x) + Web Speech API (FE) |
+| **Security & Ops** | JWT auth (`python-jose`), `bcrypt`, `slowapi` (rate limit), `loguru` (structured logging) |
 | **Desktop & Container** | Tauri v2, Docker Compose (Nginx + FastAPI) |
 | **Testing** | Vitest (frontend), Pytest (backend) |
 
@@ -49,13 +54,25 @@ subgraph "Frontend (React 19 + TypeScript)"
     UI[Giao diện Editorial Ink] --> API[services/api.ts]
     UI --> Trans[translators/index.ts]
     UI --> Dict[dictionaries/vietphrase.ts]
+    UI --> Parse[services/parsers/]
     UI --> Exp[exporters/]
+    UI --> Prompt[promptBuilder.ts]
+    UI --> Rule[ruleService.ts]
+    UI --> Model[modelFetcher.ts]
 end
 subgraph "Backend (FastAPI Service)"
-    API -->|REST + JWT| BE[FastAPI Routers]
-    BE --> DB[(SQLite Async)]
-    BE --> TTS[Edge TTS Engine]
-    BE --> Parser[Document Parsers]
+    API -->|REST + JWT| Router[Routers]
+    Router --> Auth[auth.py]
+    Router --> Project[projects.py]
+    Router --> Chapter[chapters.py]
+    Router --> Glossary[glossary.py]
+    Router --> Note[notes.py]
+    Router --> Parse[parse.py]
+    Router --> Trans[translate.py]
+    Router --> TTS[tts.py]
+    Router --> Bil[bilingual.py]
+    Router --> MD[markdown.py]
+    Router --> DB[(SQLite Async)]
 end
 subgraph "AI Providers & Services"
     Trans --> Gemini
@@ -71,29 +88,34 @@ end
 
 ```text
 omninovel-studio/
-├── src/                    # React frontend
-│   ├── components/         # UI components
-│   ├── hooks/              # Custom React hooks (useProject, useTheme, …)
+├── src/                          # React frontend
+│   ├── components/               # UI components
+│   ├── hooks/                    # Custom React hooks
 │   ├── services/
-│   │   ├── api.ts          # REST client + JWT handling
-│   │   ├── translators/    # Engine đa nguồn (10 AI)
-│   │   ├── dictionaries/   # Vietphrase client‑side engine
-│   │   ├── exporters/      # EPUB / PDF / DOCX / TXT exporters
-│   │   ├── parsers/        # Document parsers
-│   │   ├── promptBuilder.ts # Prompt building utilities
-│   │   ├── ruleService.ts   # Translation rule service
-│   │   └── modelFetcher.ts  # Model fetching utilities
-│   └── types/              # TypeScript interfaces
-├── backend/                # Python FastAPI backend
-│   ├── main.py             # Entrypoint, CORS, middleware & exception handlers
-│   ├── security.py         # JWT auth + bcrypt hashing
-│   ├── database.py         # Async SQLite connection & schema
-│   ├── models.py           # Pydantic schemas
-│   ├── routers/            # API endpoints (auth, projects, notes, tts, …)
-│   └── services/           # Business logic
-├── docker-compose.yml      # Orchestration cho Nginx + FastAPI
-├── Dockerfile              # Docker image cho frontend (nginx)
-└── nginx.conf              # Reverse‑proxy config
+│   │   ├── api.ts                # REST client + JWT handling
+│   │   ├── translators/          # Engine đa nguồn (10 AI)
+│   │   ├── dictionaries/         # Vietphrase + chapter splitter
+│   │   ├── exporters/            # EPUB / PDF / DOCX / TXT / MD / JSON
+│   │   ├── parsers/              # TXT / EPUB / PDF / DOCX / JSON
+│   │   ├── promptBuilder.ts      # Xây prompt cho AI
+│   │   ├── ruleService.ts        # Dịch vụ quản lý rule
+│   │   └── modelFetcher.ts       # Lấy model theo provider
+│   └── types/                    # TypeScript interfaces
+├── backend/                      # Python FastAPI backend
+│   ├── main.py                   # Entrypoint, CORS, middleware
+│   ├── security.py               # JWT + bcrypt
+│   ├── database.py               # Async SQLite connection & schema
+│   ├── models.py                 # Pydantic schemas
+│   ├── routers/                  # auth / projects / chapters / glossary
+│   │                             # notes / parse / translate / tts
+│   │                             # bilingual / markdown
+│   └── services/                 # parser / translator / tts
+│                                # bilingual_epub / chapter_splitter / glossary
+├── src-tauri/                    # Tauri v2 desktop shell
+├── docker-compose.yml            # Orchestration cho Nginx + FastAPI
+├── Dockerfile                    # Docker image cho frontend (nginx)
+├── nginx.conf                    # Reverse-proxy config
+└── tests/                        # Playwright e2e
 ```
 
 ## 🚀 Hướng dẫn cài đặt & chạy
@@ -162,6 +184,23 @@ npm run tauri:dev
 | **Groq** | [Groq Console](https://console.groq.com/keys) | Free tier |
 
 Bạn có thể bắt đầu ngay mà không cần API key – hai dịch vụ miễn phí (Google Translate & MyMemory) đáp ứng hầu hết nhu cầu.
+
+## 🔊 Edge TTS — 8 giọng Neural
+
+Backend khai báo sẵn 8 giọng (xem [`backend/services/tts.py`](backend/services/tts.py)):
+
+| Voice ID | Ngôn ngữ |
+|----------|----------|
+| `vi-VN-HoaiMyNeural` | Tiếng Việt (Nữ) |
+| `vi-VN-NamMinhNeural` | Tiếng Việt (Nam) |
+| `en-US-JennyNeural` | English (Female) |
+| `en-US-GuyNeural` | English (Male) |
+| `ja-JP-NanamiNeural` | Tiếng Nhật (Nữ) |
+| `ko-KR-SunHiNeural` | Tiếng Hàn (Nữ) |
+| `zh-CN-XiaoxiaoNeural` | Tiếng Trung (Nữ) |
+| `zh-CN-YunxiNeural` | Tiếng Trung (Nam) |
+
+Gọi API `POST /api/tts` với `{text, voice, rate}` để nhận về `audio/mpeg`.
 
 ## ⌨️ Phím tắt mặc định
 
