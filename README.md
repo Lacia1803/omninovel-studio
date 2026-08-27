@@ -196,6 +196,34 @@ Sau khi chạy:
 
 Trên bash, log được lưu tại `.logs/backend.log` và `.logs/frontend.log`.
 
+### 4. Dev launcher (1 lệnh, tự mở cả 2 service)
+
+Đã có sẵn script chạy nhanh — tự tạo `venv`, `npm install` nếu thiếu, rồi mở 2 cửa sổ terminal:
+
+**Windows (PowerShell)**
+```powershell
+.\dev.ps1
+```
+
+**macOS / Linux (bash)**
+```bash
+chmod +x dev.sh stop.sh
+./dev.sh
+# Tạm dừng: ./stop.sh
+```
+
+Script tự động:
+- Tạo `backend/venv` nếu chưa có + cài `requirements.txt`
+- `npm install` nếu `node_modules` chưa có
+- Đặt `JWT_SECRET=dev-secret-change-me` nếu chưa có
+- Cảnh báo nếu port `8000` / `5173` đang bận
+
+Sau khi chạy:
+- Frontend → `http://localhost:5173`
+- Backend → `http://localhost:8000` (Swagger UI: `/docs`)
+
+Trên bash, log được lưu tại `.logs/backend.log` và `.logs/frontend.log`.
+
 ## 🔑 Thiết lập Nhà cung cấp AI
 
 | Nhà cung cấp | Nhận API Key | Chi phí |
