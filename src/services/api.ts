@@ -15,12 +15,6 @@ export function isLoggedIn(): boolean {
   return !!getToken();
 }
 
-/** Strip sensitive fields (apiKey) from settings before sending to backend */
-export function sanitizeSettingsForSync(settings: Record<string, any>): Record<string, any> {
-  const { apiKey, ...rest } = settings;
-  return rest;
-}
-
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const token = getToken();
   const headers: Record<string, string> = {

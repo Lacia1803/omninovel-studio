@@ -1,8 +1,26 @@
 import httpx
+from urllib.parse import urlparse
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, asdict
 
 from services.glossary import apply_pre_glossary
+
+# Allowed hostnames for custom endpoints (SSRF protection)
+ALLOWED_ENDPOINT_HOSTS = {
+    "api.openai.com", "api.deepseek.com", "api.anthropic.com",
+    "api.mistral.ai", "api.cohere.ai", "api.groq.com",
+    "generativelanguage.googleapis.com",
+    "localhost", "127.0.0.1",  # Ollama local
+}
+
+
+def validate_endpoint(url: str, default_url: str) -> str:
+    """Return url if it's on the allowlist, otherwise fall back to default_url."""
+    parsed = urlparse(url)
+    host = parsed.hostname or ""
+    if host in ALLOWED_ENDPOINT_HOSTS:
+        return url
+    return default_url
 
 
 @dataclass
@@ -118,7 +136,10 @@ class OpenAICompatibleTranslator(TranslatorProvider):
         if not api_key:
             raise ValueError(f"API Key required for {self.provider_name}")
 
-        endpoint = settings.get("custom_endpoint") or self.default_endpoint
+        endpoint = validate_endpoint(
+            settings.get("custom_endpoint") or self.default_endpoint,
+            self.default_endpoint,
+        )
         model = settings.get("model") or self.default_model
         system_prompt = build_novel_system_prompt(settings, glossary)
 
@@ -153,7 +174,10 @@ class GeminiTranslator(TranslatorProvider):
             raise ValueError("API Key required for Gemini")
         model = settings.get("model") or "gemini-2.0-flash"
         system_prompt = build_novel_system_prompt(settings, glossary)
-        endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+        endpoint = validate_endpoint(
+            settings.get("custom_endpoint") or f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}",
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}",
+        )
 
         async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(
@@ -196,7 +220,10 @@ class ClaudeTranslator(TranslatorProvider):
             raise ValueError("API Key required for Claude")
         model = settings.get("model") or "claude-3-5-sonnet-20240620"
         system_prompt = build_novel_system_prompt(settings, glossary)
-        endpoint = settings.get("custom_endpoint") or "https://api.anthropic.com/v1/messages"
+        endpoint = validate_endpoint(
+            settings.get("custom_endpoint") or "https://api.anthropic.com/v1/messages",
+            "https://api.anthropic.com/v1/messages",
+        )
 
         async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(
@@ -230,7 +257,10 @@ class CohereTranslator(TranslatorProvider):
             raise ValueError("API Key required for Cohere")
         model = settings.get("model") or "command-r-plus"
         system_prompt = build_novel_system_prompt(settings, glossary)
-        endpoint = settings.get("custom_endpoint") or "https://api.cohere.ai/v1/chat"
+        endpoint = validate_endpoint(
+            settings.get("custom_endpoint") or "https://api.cohere.ai/v1/chat",
+            "https://api.cohere.ai/v1/chat",
+        )
 
         async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(

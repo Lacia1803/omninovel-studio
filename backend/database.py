@@ -90,13 +90,11 @@ async def init_db():
             await db.commit()
             logger.info("Database initialized, schema version {}", CURRENT_SCHEMA_VERSION)
         elif row[0] < CURRENT_SCHEMA_VERSION:
-            logger.warning(
+            logger.error(
                 "Database schema version {} is older than expected {}. "
-                "Manual migration may be needed for production.",
+                "Run a migration before starting the server.",
                 row[0], CURRENT_SCHEMA_VERSION,
             )
-            await db.execute("UPDATE schema_version SET version = ?", (CURRENT_SCHEMA_VERSION,))
-            await db.commit()
         else:
             logger.debug("Database schema version {} up to date", row[0])
     finally:

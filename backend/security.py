@@ -18,9 +18,9 @@ if _env_secret:
 else:
     JWT_SECRET = secrets.token_urlsafe(48)
     logger.warning(
-        "JWT_SECRET not set — generated random secret. "
+        "JWT_SECRET not set — using ephemeral random secret. "
         "Tokens will NOT survive server restarts. "
-        "Set JWT_SECRET env var for production."
+        "Set JWT_SECRET env var in production."
     )
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_HOURS = int(os.getenv("JWT_EXPIRE_HOURS", "24"))
