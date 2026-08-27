@@ -13,13 +13,13 @@
 ## 📖 Tổng quan
 OmniNovel Studio là giải pháp phần mềm **độc lập** (All‑in‑one Studio) giải quyết triệt để các hạn chế của việc đọc và dịch thuật tiểu thuyết web/ebook (Trung, Nhật, Hàn, Anh):
 
-- **Multi‑source translation**: Chuyển đổi hoặc fallback tự động giữa 10 nguồn dịch khác nhau.  
+- **Multi‑source translation**: Chuyển đổi hoặc fallback tự động giữa 5 nguồn dịch chất lượng cao.  
 - **Glossary smart‑prepend**: Đồng bộ tên nhân vật, địa danh, thuật ngữ tu tiên trước khi gửi tới AI, tránh bất nhất từ ngữ.  
 - **Client‑side Vietphrase engine**: Chạy hoàn toàn trong trình duyệt, không tốn token, không cần mạng.  
 - **EPUB song ngữ chất lượng cao**: Xuất bản định dạng EPUB với bản gốc và bản dịch xen kẽ.
 
 ## ✨ Tính năng nổi bật
-- **10 nguồn dịch linh hoạt**: Gemini, OpenAI, Claude, DeepSeek, Mistral, Cohere, Groq, Ollama (Local LLM), Google Translate, MyMemory (miễn phí).  
+- **5 nguồn dịch chất lượng cao**: Claude, OpenAI (GPT‑4o), Gemini, DeepSeek, Groq + Vietphrase client‑side.  
 - **Auto‑fallback**: Tự động chuyển sang nhà cung cấp dự phòng khi gặp rate‑limit hoặc ngắt kết nối mà không mất tiến trình.  
 - **4 phong cách dịch**: Văn học, Tiên hiệp, Sát nghĩa, Tùy chỉnh.  
 - **Pipeline 3 cột**: So sánh bản gốc, Vietphrase, và bản dịch AI; biện tập, chỉnh sửa ngay lập tức.  
@@ -66,25 +66,27 @@ end
 ## 📂 Cấu trúc dự án
 ```text
 omninovel-studio/
-├── src/                    # React frontend
-│   ├── components/         # UI components
-│   ├── hooks/              # Custom React hooks (useProject, useTheme, …)
-│   ├── services/
-│   │   ├── api.ts          # REST client + JWT handling
-│   │   ├── translators/    # Engine đa nguồn (10 AI)
-│   │   ├── dictionaries/   # Vietphrase client‑side engine
-│   │   └── exporters/      # EPUB / PDF / DOCX / TXT exporters
-│   └── types/              # TypeScript interfaces
+├── frontend/               # Frontend React 19 + TypeScript
+│   ├── src/
+│   │   ├── components/     # UI components
+│   │   ├── hooks/          # Custom React hooks
+│   │   ├── services/       # Translators, parsers, exporters, API
+│   │   └── types/          # TypeScript interfaces
+│   ├── Dockerfile          # Docker image cho frontend (nginx)
+│   └── nginx.conf          # Reverse‑proxy config
 ├── backend/                # Python FastAPI backend
-│   ├── main.py             # Entrypoint, CORS, middleware & exception handlers
+│   ├── main.py             # Entrypoint, CORS, middleware & handlers
 │   ├── security.py         # JWT auth + bcrypt hashing
 │   ├── database.py         # Async SQLite connection & schema
 │   ├── models.py           # Pydantic schemas
-│   ├── routers/            # API endpoints (auth, projects, notes, tts, …)
-│   └── services/            # Business logic
+│   ├── routers/            # API endpoints
+│   └── services/           # Business logic
+├── infra/                  # DevOps & testing infrastructure
+│   ├── tauri/              # Desktop app (Tauri v2)
+│   └── tests/              # E2E & integration tests
+├── docs/                   # Tài liệu & thiết kế
 ├── docker-compose.yml      # Orchestration cho Nginx + FastAPI
-├── Dockerfile              # Docker image cho frontend (nginx)
-└── nginx.conf              # Reverse‑proxy config
+└── README.vi.md            # Tài liệu tiếng Việt
 ```
 
 ## 🚀 Hướng dẫn cài đặt & chạy

@@ -19,7 +19,7 @@ OmniNovel Studio is a **standalone** (All‑in‑one Studio) solution that tackl
 - **Bilingual EPUB export**: High‑quality EPUB output with original text and translation interleaved.
 
 ## ✨ Highlights
-- **10 translation providers**: Gemini, OpenAI, Claude, DeepSeek, Mistral, Cohere, Groq, Ollama (local LLM), Google Translate, MyMemory (free).
+- **5 quality translation providers**: Claude, OpenAI (GPT‑4o), Gemini, DeepSeek, Groq + Vietphrase client‑side engine.
 - **Auto‑fallback**: Automatically switches to a backup provider on rate‑limit or network error — your progress is never lost.
 - **4 translation styles**: Literary, Wuxia, Literal, Custom.
 - **3‑column Pipeline view**: Side‑by‑side comparison of *Original*, *Vietphrase* and *AI Translation*. Edit or re‑translate any segment instantly.
@@ -66,25 +66,27 @@ end
 ## 📂 Project Structure
 ```text
 omninovel-studio/
-├── src/                    # React frontend
-│   ├── components/         # UI components
-│   ├── hooks/              # Custom React hooks (useProject, useTheme, …)
-│   ├── services/
-│   │   ├── api.ts          # REST client + JWT handling
-│   │   ├── translators/    # Multi‑source engine (10 AI providers)
-│   │   ├── dictionaries/   # Client‑side Vietphrase engine
-│   │   └── exporters/      # EPUB / PDF / DOCX / TXT exporters
-│   └── types/              # TypeScript interfaces
+├── frontend/               # React 19 + TypeScript frontend
+│   ├── src/
+│   │   ├── components/     # UI components
+│   │   ├── hooks/          # Custom React hooks
+│   │   ├── services/       # Translators, parsers, exporters, API
+│   │   └── types/          # TypeScript interfaces
+│   ├── Dockerfile          # Docker image for frontend (nginx)
+│   └── nginx.conf          # Reverse‑proxy config
 ├── backend/                # Python FastAPI backend
-│   ├── main.py             # Entrypoint, CORS, middleware & exception handlers
+│   ├── main.py             # Entrypoint, CORS, middleware & handlers
 │   ├── security.py         # JWT auth + bcrypt hashing
 │   ├── database.py         # Async SQLite connection & schema
 │   ├── models.py           # Pydantic schemas
-│   ├── routers/            # API endpoints (auth, projects, notes, tts, …)
-│   └── services/            # Business logic
+│   ├── routers/            # API endpoints
+│   └── services/           # Business logic
+├── infra/                  # DevOps & testing infrastructure
+│   ├── tauri/              # Desktop app (Tauri v2)
+│   └── tests/              # E2E & integration tests
+├── docs/                   # Documentation & design files
 ├── docker-compose.yml      # Orchestration for Nginx + FastAPI
-├── Dockerfile              # Docker image for the frontend (nginx)
-└── nginx.conf              # Reverse‑proxy config
+└── README.md               # This file
 ```
 
 ## 🚀 Installation & Run
