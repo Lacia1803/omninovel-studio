@@ -31,6 +31,9 @@ __pycache__/
 
 .superpowers/
 
-# Playwright
+# Playwright & test artifacts
 test-results/
+infra/test-results/
 playwright-report/
+infra/vitest_err.txt
+vitest_err.txt
